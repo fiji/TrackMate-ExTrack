@@ -1,5 +1,6 @@
 package fr.pasteur.iah.extrack.trackmate;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
+import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import fiji.plugin.trackmate.features.track.TrackAnalyzer;
@@ -28,8 +30,9 @@ import fr.pasteur.iah.extrack.numpy.NumPyReader;
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;
+import net.imglib2.algorithm.OutputAlgorithm;
 
-public class TrackMateExporter
+public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 {
 
 	private static final int X_COLUMN = 0;
@@ -44,56 +47,103 @@ public class TrackMateExporter
 
 	private static final int PROBA_DIFFUSIVE_COLUMN = 5;
 
-	public static void main( final String[] args )
-	{
-		final String imageFile = "samples/img.tif";
-		final String dataFile = "samples/tracks.npy";
+	private String errorMessage;
 
+	private final String imageFilePath;
+
+	private final String dataFilePath;
+
+	private final double radius;
+
+	private TrackMate trackmate;
+
+	public ExTrackImporter( final String imageFilePath, final String dataFilePath, final double radius )
+	{
+		this.imageFilePath = imageFilePath;
+		this.dataFilePath = dataFilePath;
+		this.radius = radius;
+	}
+
+	@Override
+	public boolean checkInput()
+	{
+		final File imageFile = new File( imageFilePath );
+		if ( !imageFile.exists() )
+		{
+			errorMessage = "Image file " + imageFilePath + " does not exist.";
+			return false;
+		}
+		if ( !imageFile.canRead() )
+		{
+			errorMessage = "Image file " + imageFilePath + " cannot be opened.";
+			return false;
+		}
+
+		final File dataFile = new File( dataFilePath );
+		if ( !dataFile.exists() )
+		{
+			errorMessage = "Data file " + dataFilePath + " does not exist.";
+			return false;
+		}
+		if ( !dataFile.canRead() )
+		{
+			errorMessage = "Data file " + dataFilePath + " cannot be opened.";
+			return false;
+		}
+		if (!NumPyReader.isNumPy( dataFilePath ))
+		{
+			errorMessage = "Data file " + dataFilePath + " does not seem to be a NumPy file.";
+			return false;
+		}
+
+
+		return true;
+	}
+
+	@Override
+	public boolean process()
+	{
 		/*
 		 * Load image file and create settings object.
 		 */
 
-		final Settings settings = createSettings( imageFile );
+		final Settings settings = createSettings( imageFilePath );
 
 		/*
 		 * Create model from data file.
 		 */
 		try
 		{
-			final double radius = 0.25;
-			final Model model = createModel( dataFile, radius );
+			final Model model = createModel( dataFilePath, radius );
 			model.setPhysicalUnits( settings.imp.getCalibration().getUnit(), settings.imp.getCalibration().getTimeUnit() );
 
 			// Put it in TrackMate.
-//			final TrackMate trackmate = new TrackMate( model, settings );
-//			trackmate.computeSpotFeatures( false );
-//			trackmate.computeEdgeFeatures( false );
-//			trackmate.computeTrackFeatures( false );
-
-			// Visualization.
-
-			ImageJ.main( args );
-
-			final SelectionModel selectionModel = new SelectionModel( model );
-//			final HyperStackDisplayer view = new HyperStackDisplayer( model, selectionModel, settings.imp );
-			final HyperStackDisplayer view = new HyperStackDisplayer( model, selectionModel );
-			final SpotColorGenerator spotColorGenerator = new SpotColorGenerator( model );
-			spotColorGenerator.setFeature( ExTrackProbabilitiesFeature.P_STUCK );
-			final PerEdgeFeatureColorGenerator trackColorGenerator = new PerEdgeFeatureColorGenerator( model, ExTrackEdgeFeatures.P_STUCK );
-			view.setDisplaySettings( TrackMateModelView.KEY_SPOT_COLORING, spotColorGenerator );
-			view.setDisplaySettings( TrackMateModelView.KEY_TRACK_COLORING, trackColorGenerator );
-			view.setDisplaySettings( TrackMateModelView.KEY_TRACK_DISPLAY_MODE, TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL );
-			view.setDisplaySettings( TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH, 20 );
-			view.render();
+			this.trackmate = new TrackMate( model, settings );
+			trackmate.computeSpotFeatures( false );
+			trackmate.computeEdgeFeatures( false );
+			trackmate.computeTrackFeatures( false );
 		}
 		catch ( final IOException e )
 		{
-			e.printStackTrace();
+			errorMessage = e.getMessage();
+			return false;
 		}
-
+		return true;
 	}
 
-	public static final Settings createSettings( final String imageFile )
+	@Override
+	public TrackMate getResult()
+	{
+		return trackmate;
+	}
+
+	@Override
+	public String getErrorMessage()
+	{
+		return errorMessage;
+	}
+
+	protected Settings createSettings( final String imageFile )
 	{
 		final ImagePlus imp = IJ.openImage( imageFile );
 
@@ -134,7 +184,7 @@ public class TrackMateExporter
 		return settings;
 	}
 
-	public static final Model createModel( final String dataFile, final double radius ) throws FileNotFoundException, IOException
+	protected Model createModel( final String dataFile, final double radius ) throws FileNotFoundException, IOException
 	{
 		// Read NumPy file.
 		final double[][] data = NumPyReader.readFile( dataFile );
@@ -216,5 +266,38 @@ public class TrackMateExporter
 		}
 
 		return model;
+	}
+
+
+	public static void main( final String[] args )
+	{
+		final String imageFile = "samples/img.tif";
+		final String dataFile = "samples/tracks.npy";
+		final double radius = 0.25;
+
+		final ExTrackImporter importer = new ExTrackImporter( imageFile, dataFile, radius );
+		if (!importer.checkInput() || !importer.process())
+		{
+			System.err.println( "Could not import ExTrack data:" );
+			System.err.println( importer.getErrorMessage() );
+			return;
+		}
+
+		final TrackMate trackmate = importer.getResult();
+		final Model model = trackmate.getModel();
+
+		ImageJ.main( args );
+
+		final SelectionModel selectionModel = new SelectionModel( model );
+//			final HyperStackDisplayer view = new HyperStackDisplayer( model, selectionModel, settings.imp );
+		final HyperStackDisplayer view = new HyperStackDisplayer( model, selectionModel );
+		final SpotColorGenerator spotColorGenerator = new SpotColorGenerator( model );
+		spotColorGenerator.setFeature( ExTrackProbabilitiesFeature.P_STUCK );
+		final PerEdgeFeatureColorGenerator trackColorGenerator = new PerEdgeFeatureColorGenerator( model, ExTrackEdgeFeatures.P_STUCK );
+		view.setDisplaySettings( TrackMateModelView.KEY_SPOT_COLORING, spotColorGenerator );
+		view.setDisplaySettings( TrackMateModelView.KEY_TRACK_COLORING, trackColorGenerator );
+		view.setDisplaySettings( TrackMateModelView.KEY_TRACK_DISPLAY_MODE, TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL );
+		view.setDisplaySettings( TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH, 20 );
+		view.render();
 	}
 }
