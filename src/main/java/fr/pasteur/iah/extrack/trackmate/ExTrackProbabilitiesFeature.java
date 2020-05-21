@@ -18,9 +18,9 @@ import net.imglib2.type.numeric.RealType;
 public class ExTrackProbabilitiesFeature< T extends RealType< T > & NativeType< T > > implements SpotAnalyzerFactory< T >
 {
 
-	public static final String FEATURE_P_STUCK = "EXTRACK_P_STUCK";
+	public static final String P_STUCK = "EXTRACK_P_STUCK";
 
-	public static final String FEATURE_P_DIFFUSIVE = "EXTRACK_P_DIFFUSIVE";
+	public static final String P_DIFFUSIVE = "EXTRACK_P_DIFFUSIVE";
 
 	public static final String KEY = "EXTRACK_PROBABILITIES";
 
@@ -40,17 +40,17 @@ public class ExTrackProbabilitiesFeature< T extends RealType< T > & NativeType< 
 
 	static
 	{
-		FEATURES.add( FEATURE_P_STUCK );
-		FEATURE_SHORT_NAMES.put( FEATURE_P_STUCK, "P stuck" );
-		FEATURE_NAMES.put( FEATURE_P_STUCK, "Probabiity stuck" );
-		FEATURE_DIMENSIONS.put( FEATURE_P_STUCK, Dimension.NONE );
-		IS_INT.put( FEATURE_P_STUCK, Boolean.FALSE );
+		FEATURES.add( P_STUCK );
+		FEATURE_SHORT_NAMES.put( P_STUCK, "P stuck" );
+		FEATURE_NAMES.put( P_STUCK, "Probability stuck" );
+		FEATURE_DIMENSIONS.put( P_STUCK, Dimension.NONE );
+		IS_INT.put( P_STUCK, Boolean.FALSE );
 
-		FEATURES.add( FEATURE_P_DIFFUSIVE );
-		FEATURE_SHORT_NAMES.put( FEATURE_P_DIFFUSIVE, "P diffusive" );
-		FEATURE_NAMES.put( FEATURE_P_DIFFUSIVE, "Probabiity diffusive" );
-		FEATURE_DIMENSIONS.put( FEATURE_P_DIFFUSIVE, Dimension.NONE );
-		IS_INT.put( FEATURE_P_DIFFUSIVE, Boolean.FALSE );
+		FEATURES.add( P_DIFFUSIVE );
+		FEATURE_SHORT_NAMES.put( P_DIFFUSIVE, "P diffusive" );
+		FEATURE_NAMES.put( P_DIFFUSIVE, "Probability diffusive" );
+		FEATURE_DIMENSIONS.put( P_DIFFUSIVE, Dimension.NONE );
+		IS_INT.put( P_DIFFUSIVE, Boolean.FALSE );
 	}
 
 	@Override
