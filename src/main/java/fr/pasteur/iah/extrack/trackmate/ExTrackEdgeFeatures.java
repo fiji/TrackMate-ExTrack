@@ -17,7 +17,9 @@ import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 public class ExTrackEdgeFeatures implements EdgeAnalyzer
 {
 
-	public static final String FEATURE_P_STUCK_CHANGE = "EXTRACK_P_STUCK_CHANGE";
+	public static final String P_STUCK = "EXTRACK_EDGE_P_STUCK";
+
+	public static final String P_DIFFUSIVE = "EXTRACK_EDGE_P_DIFFUSIVE";
 
 	public static final String KEY = "EXTRACK_EDGE_FEATURES";
 
@@ -37,11 +39,17 @@ public class ExTrackEdgeFeatures implements EdgeAnalyzer
 
 	static
 	{
-		FEATURES.add( FEATURE_P_STUCK_CHANGE );
-		FEATURE_SHORT_NAMES.put( FEATURE_P_STUCK_CHANGE, "P stuck change " );
-		FEATURE_NAMES.put( FEATURE_P_STUCK_CHANGE, "Probabiity stuck change" );
-		FEATURE_DIMENSIONS.put( FEATURE_P_STUCK_CHANGE, Dimension.NONE );
-		IS_INT.put( FEATURE_P_STUCK_CHANGE, Boolean.FALSE );
+		FEATURES.add( P_STUCK );
+		FEATURE_SHORT_NAMES.put( P_STUCK, "P stuck" );
+		FEATURE_NAMES.put( P_STUCK, "Probability stuck" );
+		FEATURE_DIMENSIONS.put( P_STUCK, Dimension.NONE );
+		IS_INT.put( P_STUCK, Boolean.FALSE );
+
+		FEATURES.add( P_DIFFUSIVE );
+		FEATURE_SHORT_NAMES.put( P_DIFFUSIVE, "P diffusive" );
+		FEATURE_NAMES.put( P_DIFFUSIVE, "Probability diffusive" );
+		FEATURE_DIMENSIONS.put( P_DIFFUSIVE, Dimension.NONE );
+		IS_INT.put( P_DIFFUSIVE, Boolean.FALSE );
 	}
 
 	@Override

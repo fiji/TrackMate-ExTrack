@@ -78,8 +78,8 @@ public class TrackMateExporter
 //			final HyperStackDisplayer view = new HyperStackDisplayer( model, selectionModel, settings.imp );
 			final HyperStackDisplayer view = new HyperStackDisplayer( model, selectionModel );
 			final SpotColorGenerator spotColorGenerator = new SpotColorGenerator( model );
-			spotColorGenerator.setFeature( ExTrackProbabilitiesFeature.FEATURE_P_STUCK );
-			final PerEdgeFeatureColorGenerator trackColorGenerator = new PerEdgeFeatureColorGenerator( model, ExTrackEdgeFeatures.FEATURE_P_STUCK_CHANGE );
+			spotColorGenerator.setFeature( ExTrackProbabilitiesFeature.P_STUCK );
+			final PerEdgeFeatureColorGenerator trackColorGenerator = new PerEdgeFeatureColorGenerator( model, ExTrackEdgeFeatures.P_STUCK );
 			view.setDisplaySettings( TrackMateModelView.KEY_SPOT_COLORING, spotColorGenerator );
 			view.setDisplaySettings( TrackMateModelView.KEY_TRACK_COLORING, trackColorGenerator );
 			view.setDisplaySettings( TrackMateModelView.KEY_TRACK_DISPLAY_MODE, TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL );
@@ -176,25 +176,30 @@ public class TrackMateExporter
 					spots.add( spot );
 
 					// Store feature values.
-					spot.putFeature( ExTrackProbabilitiesFeature.FEATURE_P_STUCK, Double.valueOf( probaStuck ) );
-					spot.putFeature( ExTrackProbabilitiesFeature.FEATURE_P_DIFFUSIVE, Double.valueOf( probaDiffusive ) );
+					spot.putFeature( ExTrackProbabilitiesFeature.P_STUCK, Double.valueOf( probaStuck ) );
+					spot.putFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE, Double.valueOf( probaDiffusive ) );
 				}
 				spots.sort( Spot.frameComparator );
 				Spot source = spots.get( 0 );
-				double pStuckSource = source.getFeature( ExTrackProbabilitiesFeature.FEATURE_P_STUCK );
 				for ( int j = 1; j < spots.size(); j++ )
 				{
 					final Spot target = spots.get( j );
-					final double pStuckTarget = source.getFeature( ExTrackProbabilitiesFeature.FEATURE_P_STUCK );
 
 					final DefaultWeightedEdge edge = model.addEdge( source, target, 1. );
+
+					final double pStuckTarget = source.getFeature( ExTrackProbabilitiesFeature.P_STUCK );
 					model.getFeatureModel().putEdgeFeature(
 							edge,
-							ExTrackEdgeFeatures.FEATURE_P_STUCK_CHANGE,
-							Double.valueOf( pStuckTarget - pStuckSource ) );
+							ExTrackEdgeFeatures.P_STUCK,
+							Double.valueOf( pStuckTarget ) );
+
+					final double pStuckDiffusive = source.getFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE );
+					model.getFeatureModel().putEdgeFeature(
+							edge,
+							ExTrackEdgeFeatures.P_DIFFUSIVE,
+							Double.valueOf( pStuckDiffusive ) );
 
 					source = target;
-					pStuckSource = pStuckTarget;
 				}
 
 				// Store original track ID.
