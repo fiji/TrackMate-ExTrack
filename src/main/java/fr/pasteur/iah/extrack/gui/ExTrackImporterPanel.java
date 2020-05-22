@@ -35,13 +35,10 @@ import fiji.plugin.trackmate.gui.TrackMateGUIController;
 import fiji.plugin.trackmate.gui.descriptors.ConfigureViewsDescriptor;
 import fiji.plugin.trackmate.util.DefaultFileFilter.ImageFileFilter;
 import fiji.plugin.trackmate.util.TMUtils;
-import fiji.plugin.trackmate.visualization.SpotColorGenerator;
-import fiji.plugin.trackmate.visualization.TrackColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
-import fr.pasteur.iah.extrack.trackmate.ExTrackEdgeFeatures;
 import fr.pasteur.iah.extrack.trackmate.ExTrackImporter;
-import fr.pasteur.iah.extrack.trackmate.ExTrackProbabilitiesFeature;
+import fr.pasteur.iah.extrack.trackmate.ExTrackImporterFromImp;
 import fr.pasteur.iah.extrack.util.FileChooser;
 import fr.pasteur.iah.extrack.util.FileChooser.DialogType;
 import fr.pasteur.iah.extrack.util.FileChooser.SelectionMode;
@@ -62,12 +59,62 @@ public class ExTrackImporterPanel extends JPanel
 
 	private static File path = new File( System.getProperty( "user.home" ) );
 
-	public ExTrackImporterPanel()
+	/**
+	 * Creates a panel from an opened image.
+	 * 
+	 * @param imp
+	 * @param dataPath
+	 * @param radius
+	 */
+	public ExTrackImporterPanel(
+			final ImagePlus imp,
+			final String dataPath,
+			final double radius )
 	{
-		this( path.getAbsolutePath(), path.getAbsolutePath(), 0.08, 0.12, "µm", 0.1, "s" );
+		this(
+				imp,
+				null,
+				dataPath,
+				imp.getCalibration().pixelWidth,
+				radius,
+				imp.getCalibration().getUnit(),
+				imp.getCalibration().frameInterval,
+				imp.getCalibration().getTimeUnit() );
 	}
 
+	/**
+	 * Creates an image from a path to an image file.
+	 * 
+	 * @param imagePath
+	 * @param dataPath
+	 * @param pixelSize
+	 * @param radius
+	 * @param spaceUnits
+	 * @param frameInterval
+	 * @param timeUnits
+	 */
 	public ExTrackImporterPanel(
+			final String imagePath,
+			final String dataPath,
+			final double pixelSize,
+			final double radius,
+			final String spaceUnits,
+			final double frameInterval,
+			final String timeUnits )
+	{
+		this(
+				null,
+				imagePath,
+				dataPath,
+				pixelSize,
+				radius,
+				spaceUnits,
+				frameInterval,
+				timeUnits );
+	}
+
+	private ExTrackImporterPanel(
+			final ImagePlus imp,
 			final String imagePath,
 			final String dataPath,
 			final double pixelSize,
@@ -123,7 +170,7 @@ public class ExTrackImporterPanel extends JPanel
 		gbc_btnBrowseDataFile.gridy = 3;
 		add( btnBrowseDataFile, gbc_btnBrowseDataFile );
 
-		final JLabel lblImgFile = new JLabel( "Image file:" );
+		final JLabel lblImgFile = new JLabel( ( imp == null ) ? "Image file:" : "Image:" );
 		final GridBagConstraints gbc_lblImgFile = new GridBagConstraints();
 		gbc_lblImgFile.insets = new Insets( 0, 5, 5, 5 );
 		gbc_lblImgFile.anchor = GridBagConstraints.WEST;
@@ -131,7 +178,8 @@ public class ExTrackImporterPanel extends JPanel
 		gbc_lblImgFile.gridy = 4;
 		add( lblImgFile, gbc_lblImgFile );
 
-		textFieldImgPath = new JTextField( imagePath );
+		textFieldImgPath = new JTextField( ( imp == null ) ? imagePath : imp.getTitle() );
+		textFieldImgPath.setEnabled( ( imp == null ) );
 		final GridBagConstraints gbc_textFieldImgPath = new GridBagConstraints();
 		gbc_textFieldImgPath.insets = new Insets( 0, 5, 0, 5 );
 		gbc_textFieldImgPath.fill = GridBagConstraints.HORIZONTAL;
@@ -141,6 +189,7 @@ public class ExTrackImporterPanel extends JPanel
 		textFieldImgPath.setColumns( 10 );
 
 		final JButton btnBrowseImgFile = new JButton( "Browse" );
+		btnBrowseImgFile.setVisible( ( imp == null ) );
 		final GridBagConstraints gbc_btnBrowseImgFile = new GridBagConstraints();
 		gbc_btnBrowseImgFile.insets = new Insets( 0, 5, 5, 5 );
 		gbc_btnBrowseImgFile.anchor = GridBagConstraints.EAST;
@@ -159,6 +208,7 @@ public class ExTrackImporterPanel extends JPanel
 		panelUnits.setLayout( new BoxLayout( panelUnits, BoxLayout.X_AXIS ) );
 
 		final JLabel lblUnits = new JLabel( "Spatial units:" );
+		lblUnits.setVisible( imp == null );
 		panelUnits.add( lblUnits );
 
 		final Component hg1 = Box.createHorizontalGlue();
@@ -167,6 +217,7 @@ public class ExTrackImporterPanel extends JPanel
 		final JComboBox< String > comboBoxSpaceUnits = new JComboBox<>();
 		comboBoxSpaceUnits.setMaximumSize( new Dimension( 150, 32767 ) );
 		comboBoxSpaceUnits.setModel( new DefaultComboBoxModel<>( new String[] { "µm", "nm" } ) );
+		comboBoxSpaceUnits.setVisible( imp == null );
 		panelUnits.add( comboBoxSpaceUnits );
 
 		final JPanel panelPixelSize = new JPanel();
@@ -189,6 +240,7 @@ public class ExTrackImporterPanel extends JPanel
 		ftfPixelSize.setValue( Double.valueOf( pixelSize ) );
 		ftfPixelSize.setHorizontalAlignment( SwingConstants.CENTER );
 		ftfPixelSize.setPreferredSize( new Dimension( 80, 26 ) );
+		ftfPixelSize.setEnabled( imp == null );
 		panelPixelSize.add( ftfPixelSize );
 
 		final Component hs2 = Box.createHorizontalStrut( 5 );
@@ -207,6 +259,7 @@ public class ExTrackImporterPanel extends JPanel
 		panelTimeUnits.setLayout( new BoxLayout( panelTimeUnits, BoxLayout.X_AXIS ) );
 
 		final JLabel lblTimeUnits = new JLabel( "Time units:" );
+		lblTimeUnits.setVisible( imp == null );
 		panelTimeUnits.add( lblTimeUnits );
 
 		final Component hg2 = Box.createHorizontalGlue();
@@ -215,6 +268,7 @@ public class ExTrackImporterPanel extends JPanel
 		final JComboBox< String > comboBoxTimeUnits = new JComboBox<>();
 		comboBoxTimeUnits.setMaximumSize( new Dimension( 150, 32767 ) );
 		comboBoxTimeUnits.setModel( new DefaultComboBoxModel<>( new String[] { "s", "ms" } ) );
+		comboBoxTimeUnits.setVisible( imp == null );
 		panelTimeUnits.add( comboBoxTimeUnits );
 
 		final JPanel panelFrameInterval = new JPanel();
@@ -232,7 +286,8 @@ public class ExTrackImporterPanel extends JPanel
 
 		final JFormattedTextField ftfFrameInterval = new JFormattedTextField( format );
 		ftfFrameInterval.setValue( Double.valueOf( frameInterval ) );
-		ftfFrameInterval.setHorizontalAlignment(SwingConstants.CENTER);
+		ftfFrameInterval.setHorizontalAlignment( SwingConstants.CENTER );
+		ftfFrameInterval.setEnabled( imp == null );
 		panelFrameInterval.add( ftfFrameInterval );
 
 		final Component hs4 = Box.createHorizontalStrut( 5 );
@@ -243,7 +298,7 @@ public class ExTrackImporterPanel extends JPanel
 
 		final JPanel panelDetectionRadius = new JPanel();
 		final GridBagConstraints gbc_panelDetectionRadius = new GridBagConstraints();
-		gbc_panelDetectionRadius.insets = new Insets( 5, 5, 5, 5 );
+		gbc_panelDetectionRadius.insets = new Insets( 15, 5, 5, 5 );
 		gbc_panelDetectionRadius.fill = GridBagConstraints.BOTH;
 		gbc_panelDetectionRadius.gridx = 0;
 		gbc_panelDetectionRadius.gridy = 11;
@@ -288,13 +343,18 @@ public class ExTrackImporterPanel extends JPanel
 			lblPixelSizeUnits.setText( units );
 		} );
 		comboBoxSpaceUnits.setSelectedIndex( 0 );
+		comboBoxSpaceUnits.setEditable( true );
 		comboBoxSpaceUnits.setSelectedItem( spaceUnits );
-		
+		comboBoxSpaceUnits.setEditable( false );
+
 		comboBoxTimeUnits.addActionListener( l -> lblFrameIntervalUnits.setText( ( String ) comboBoxTimeUnits.getSelectedItem() ) );
 		comboBoxTimeUnits.setSelectedIndex( 0 );
+		comboBoxTimeUnits.setEditable( true );
 		comboBoxTimeUnits.setSelectedItem( timeUnits );
+		comboBoxTimeUnits.setEditable( false );
 
 		btnImport.addActionListener( l -> runImport(
+				imp,
 				textFieldImgPath.getText(),
 				textFieldDataPath.getText(),
 				( ( Number ) ftfPixelSize.getValue() ).doubleValue(),
@@ -306,6 +366,7 @@ public class ExTrackImporterPanel extends JPanel
 	}
 
 	private void runImport(
+			final ImagePlus imp,
 			final String imagePath,
 			final String dataPath,
 			final double pixelSize,
@@ -326,19 +387,30 @@ public class ExTrackImporterPanel extends JPanel
 				{
 					final StringBuilder logText = new StringBuilder();
 					logText.append( "ExTrack import started on " + TMUtils.getCurrentTimeString() + '\n' );
-					logText.append( " - Image file: " + imagePath + '\n' );
+					if ( imp == null )
+						logText.append( " - Image file: " + imagePath + '\n' );
+					else
+						logText.append( " - Image: " + imp.getTitle() + '\n' );
 					logText.append( " - NumPy datafile: " + dataPath + '\n' );
 					logText.append( " - Pixel size: " + pixelSize + " " + spaceUnits + '\n' );
 					logText.append( " - Frame interval: " + frameInterval + " " + timeUnits + '\n' );
 					logText.append( " - Detection radius: " + radius + " " + spaceUnits + '\n' );
 
-					final ExTrackImporter importer = new ExTrackImporter(
-							imagePath,
-							dataPath,
-							radius,
-							spaceUnits,
-							frameInterval,
-							timeUnits );
+					final ExTrackImporter importer;
+					if ( imp == null )
+						importer = new ExTrackImporter(
+								imagePath,
+								dataPath,
+								radius,
+								spaceUnits,
+								frameInterval,
+								timeUnits );
+					else
+						importer = new ExTrackImporterFromImp(
+								imp,
+								dataPath,
+								radius );
+
 					if ( !importer.checkInput() || !importer.process() )
 					{
 						System.err.println( importer.getErrorMessage() );
@@ -346,36 +418,39 @@ public class ExTrackImporterPanel extends JPanel
 					}
 					final TrackMate trackmate = importer.getResult();
 
-					// Fine-tune image.
-					final Settings settings = trackmate.getSettings();
-					final ImagePlus imp = settings.imp;
-					imp.getCalibration().setUnit( spaceUnits );
-					imp.getCalibration().pixelWidth = pixelSize;
-					imp.getCalibration().pixelHeight = pixelSize;
-					imp.getCalibration().setTimeUnit( timeUnits );
-					imp.getCalibration().frameInterval = frameInterval;
-					/*
-					 * If we do not have a time-lapse, assume we have and
-					 * permute Z with T.
-					 */
-					if ( settings.imp.getNFrames() == 1 )
+					if ( null == imp )
 					{
-						final int nSlices = settings.imp.getNSlices();
-						final int nChannels = settings.imp.getNChannels();
-						settings.imp.setDimensions( nChannels, 1, nSlices );
+						// Fine-tune image.
+						final Settings settings = trackmate.getSettings();
+						final ImagePlus imp = settings.imp;
+						imp.getCalibration().setUnit( spaceUnits );
+						imp.getCalibration().pixelWidth = pixelSize;
+						imp.getCalibration().pixelHeight = pixelSize;
+						imp.getCalibration().setTimeUnit( timeUnits );
+						imp.getCalibration().frameInterval = frameInterval;
+						/*
+						 * If we do not have a time-lapse, assume we have and
+						 * permute Z with T.
+						 */
+						if ( settings.imp.getNFrames() == 1 )
+						{
+							final int nSlices = settings.imp.getNSlices();
+							final int nChannels = settings.imp.getNChannels();
+							settings.imp.setDimensions( nChannels, 1, nSlices );
+						}
+						settings.imp.setOpenAsHyperStack( true );
+
+						// Resave the image.
+						final String tifImagePath = imagePath.substring( 0, imagePath.lastIndexOf( '.' ) ) + ".tif";
+						final boolean resaveOk = IJ.saveAsTiff( imp, tifImagePath );
+						final String saveMsg = ( resaveOk )
+								? "Resaving image succesful."
+								: "Problem resaving the image to TIF file. Saved TrackMate file might not reload properly.";
+						logText.append( saveMsg );
+
+						// Update settings accordingly.
+						settings.setFrom( imp );
 					}
-					settings.imp.setOpenAsHyperStack( true );
-
-					// Resave the image.
-					final String tifImagePath = imagePath.substring( 0, imagePath.lastIndexOf( '.' ) ) + ".tif";
-					final boolean resaveOk = IJ.saveAsTiff( imp, tifImagePath );
-					final String saveMsg = ( resaveOk )
-							? "Resaving image succesful."
-							: "Problem resaving the image to TIF file. Saved TrackMate file might not reload properly.";
-					logText.append( saveMsg );
-
-					// Update settings accordingly.
-					settings.setFrom( imp );
 
 					// Launch TrackMate controller.
 					final TrackMateGUIController controller = new TrackMateGUIController( trackmate );
@@ -387,15 +462,6 @@ public class ExTrackImporterPanel extends JPanel
 					controller.getGuimodel().addView( view );
 
 					final Map< String, Object > displaySettings = controller.getGuimodel().getDisplaySettings();
-					final SpotColorGenerator spotColorGenerator = ( SpotColorGenerator ) displaySettings.get( TrackMateModelView.KEY_SPOT_COLORING );
-					spotColorGenerator.setFeature( ExTrackProbabilitiesFeature.P_STUCK );
-					final TrackColorGenerator trackColorGenerator = ( TrackColorGenerator ) displaySettings.get( TrackMateModelView.KEY_TRACK_COLORING );
-					trackColorGenerator.setFeature( ExTrackEdgeFeatures.P_STUCK );
-					displaySettings.put( TrackMateModelView.KEY_SPOT_COLORING, spotColorGenerator );
-					displaySettings.put( TrackMateModelView.KEY_TRACK_COLORING, trackColorGenerator );
-					displaySettings.put( TrackMateModelView.KEY_TRACK_DISPLAY_MODE, TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL );
-					displaySettings.put( TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH, 20 );
-
 					for ( final String key : displaySettings.keySet() )
 						view.setDisplaySettings( key, displaySettings.get( key ) );
 
@@ -476,10 +542,19 @@ public class ExTrackImporterPanel extends JPanel
 		ImageJ.main( args );
 		final JFrame frame = new JFrame( "ExTrack importer" );
 		frame.setIconImage( ICON.getImage() );
+//		frame.getContentPane().add( new ExTrackImporterPanel(
+//				"samples/realdata/GFP-100mW-60msExp-FTo-bleaching-10s-tirf_6_MMStack_Pos0.ome.tif",
+//				"samples/realdata/tracks.npy",
+//				0.08, 0.12, "µm", 0.1, "s" ) );
+
+		final ImagePlus imp = IJ.openImage( "samples/img.tif" );
+		imp.show();
+		
 		frame.getContentPane().add( new ExTrackImporterPanel(
-				"samples/realdata/GFP-100mW-60msExp-FTo-bleaching-10s-tirf_6_MMStack_Pos0.ome.tif",
-				"samples/realdata/tracks.npy",
-				0.08, 0.12, "µm", 0.1, "s" ) );
+				imp,
+				"samples/tracks.npy",
+				0.12 ) );
+
 		frame.pack();
 		frame.setVisible( true );
 	}
