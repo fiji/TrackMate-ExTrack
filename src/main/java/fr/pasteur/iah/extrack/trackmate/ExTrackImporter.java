@@ -55,13 +55,29 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 	private final double radius;
 
+	private final double frameInterval;
+
+	private final String spaceUnits;
+
+	private final String timeUnits;
+
 	private TrackMate trackmate;
 
-	public ExTrackImporter( final String imageFilePath, final String dataFilePath, final double radius )
+
+	public ExTrackImporter(
+			final String imageFilePath,
+			final String dataFilePath,
+			final double radius,
+			final String spaceUnits,
+			final double frameInterval,
+			final String timeUnits )
 	{
 		this.imageFilePath = imageFilePath;
 		this.dataFilePath = dataFilePath;
 		this.radius = radius;
+		this.spaceUnits = spaceUnits;
+		this.frameInterval = frameInterval;
+		this.timeUnits = timeUnits;
 	}
 
 	@Override
@@ -196,7 +212,7 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 				.toArray();
 
 		final Model model = new Model();
-		// TODO deal with physical units.
+		model.setPhysicalUnits( spaceUnits, timeUnits );
 
 		final double quality = 1.; // Dummy value?
 
@@ -222,6 +238,7 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 					final double probaDiffusive = data[ PROBA_DIFFUSIVE_COLUMN ][ r ];
 
 					final Spot spot = new Spot( x, y, z, radius, quality );
+					spot.putFeature( Spot.POSITION_T, frameInterval * frame );
 					model.addSpotTo( spot, Integer.valueOf( frame ) );
 					spots.add( spot );
 
@@ -274,8 +291,9 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 		final String imageFile = "samples/img.tif";
 		final String dataFile = "samples/tracks.npy";
 		final double radius = 0.25;
+		final double frameInterval = 0.1;
 
-		final ExTrackImporter importer = new ExTrackImporter( imageFile, dataFile, radius );
+		final ExTrackImporter importer = new ExTrackImporter( imageFile, dataFile, radius, "µm", frameInterval, "s" );
 		if (!importer.checkInput() || !importer.process())
 		{
 			System.err.println( "Could not import ExTrack data:" );
