@@ -47,11 +47,11 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 	private static final int PROBA_DIFFUSIVE_COLUMN = 5;
 
-	private String errorMessage;
+	protected String errorMessage;
 
-	private final String imageFilePath;
+	protected final String imageFilePath;
 
-	private final String dataFilePath;
+	protected final String dataFilePath;
 
 	private final double radius;
 
@@ -111,7 +111,6 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 			errorMessage = "Data file " + dataFilePath + " does not seem to be a NumPy file.";
 			return false;
 		}
-
 
 		return true;
 	}
