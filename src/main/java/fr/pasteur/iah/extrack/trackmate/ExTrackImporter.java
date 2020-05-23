@@ -35,6 +35,8 @@ import net.imglib2.algorithm.OutputAlgorithm;
 public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 {
 
+	public static final String PLUGIN_NAME = "TrackMate-ExrackImporter";
+
 	private static final int X_COLUMN = 0;
 
 	private static final int Y_COLUMN = 1;
