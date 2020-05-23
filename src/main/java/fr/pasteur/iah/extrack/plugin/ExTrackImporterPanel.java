@@ -56,11 +56,11 @@ public class ExTrackImporterPanel extends JPanel
 	// Used to 'remember values between runs.'
 	static String lastDataPath = System.getProperty( "user.home" );
 	static String lastImagePath = System.getProperty( "user.home" );
-	static double lastRadius;
-	static double lastPizelSize;
-	static double lastFrameInterval;
-	static String lastSpatialUnits;
-	static String lastTimeUnits;
+	static double lastRadius = 0.3;
+	static double lastPizelSize = 0.08;
+	static double lastFrameInterval = 0.1;
+	static String lastSpatialUnits = "µm";
+	static String lastTimeUnits = "s";
 
 	private JTextField textFieldDataPath;
 
