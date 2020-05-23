@@ -413,7 +413,7 @@ public class ExTrackImporterPanel extends JPanel
 
 					if ( !importer.checkInput() || !importer.process() )
 					{
-						System.err.println( importer.getErrorMessage() );
+						IJ.error( importer.getErrorMessage() );
 						return;
 					}
 					final TrackMate trackmate = importer.getResult();
@@ -542,17 +542,24 @@ public class ExTrackImporterPanel extends JPanel
 		ImageJ.main( args );
 		final JFrame frame = new JFrame( "ExTrack importer" );
 		frame.setIconImage( ICON.getImage() );
+
 //		frame.getContentPane().add( new ExTrackImporterPanel(
 //				"samples/realdata/GFP-100mW-60msExp-FTo-bleaching-10s-tirf_6_MMStack_Pos0.ome.tif",
 //				"samples/realdata/tracks.npy",
 //				0.08, 0.12, "µm", 0.1, "s" ) );
 
-		final ImagePlus imp = IJ.openImage( "samples/img.tif" );
-		imp.show();
+//		final ImagePlus imp = IJ.openImage( "samples/img.tif" );
+//		imp.show();
+//		frame.getContentPane().add( new ExTrackImporterPanel(
+//				imp,
+//				"samples/tracks.npy",
+//				0.12 ) );
 		
+		final ImagePlus imp = IJ.openImage( "samples/realdata/GFP-100mW-60msExp-FTo-bleaching-10s-tirf_6_MMStack_Pos0.tif" );
+		imp.show();
 		frame.getContentPane().add( new ExTrackImporterPanel(
 				imp,
-				"samples/tracks.npy",
+				"samples/realdata/tracks.npy",
 				0.12 ) );
 
 		frame.pack();
