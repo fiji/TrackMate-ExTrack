@@ -440,6 +440,7 @@ public class ExTrackImporterPanel extends JPanel
 						// Fine-tune image.
 						final Settings settings = trackmate.getSettings();
 						final ImagePlus imp = settings.imp;
+						imp.show();
 						imp.getCalibration().setUnit( spaceUnits );
 						imp.getCalibration().pixelWidth = pixelSize;
 						imp.getCalibration().pixelHeight = pixelSize;
@@ -471,11 +472,11 @@ public class ExTrackImporterPanel extends JPanel
 
 					// Launch TrackMate controller.
 					final TrackMateGUIController controller = new TrackMateGUIController( trackmate );
-					GuiUtils.positionWindow( controller.getGUI(), imp.getWindow() );
+					GuiUtils.positionWindow( controller.getGUI(), trackmate.getSettings().imp.getWindow() );
 
 					// Fine tune the view.
 					final Model model = trackmate.getModel();
-					final TrackMateModelView view = new HyperStackDisplayer( model, new SelectionModel( model ), imp );
+					final TrackMateModelView view = new HyperStackDisplayer( model, new SelectionModel( model ), trackmate.getSettings().imp );
 					controller.getGuimodel().addView( view );
 
 					final Map< String, Object > displaySettings = controller.getGuimodel().getDisplaySettings();
