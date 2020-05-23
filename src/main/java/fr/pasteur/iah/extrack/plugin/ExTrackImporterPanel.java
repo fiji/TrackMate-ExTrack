@@ -1,4 +1,4 @@
-package fr.pasteur.iah.extrack.gui;
+package fr.pasteur.iah.extrack.plugin;
 
 import java.awt.Component;
 import java.awt.Dimension;
