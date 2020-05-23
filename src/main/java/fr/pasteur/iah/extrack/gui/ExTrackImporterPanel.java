@@ -53,6 +53,15 @@ public class ExTrackImporterPanel extends JPanel
 
 	public static final ImageIcon ICON = new ImageIcon( ExTrackImporterPanel.class.getResource( "TrackMateExTrack-logo.png" ) );
 
+	// Used to 'remember values between runs.'
+	static String lastDataPath = System.getProperty( "user.home" );
+	static String lastImagePath = System.getProperty( "user.home" );
+	static double lastRadius;
+	static double lastPizelSize;
+	static double lastFrameInterval;
+	static String lastSpatialUnits;
+	static String lastTimeUnits;
+
 	private JTextField textFieldDataPath;
 
 	private JTextField textFieldImgPath;
@@ -377,6 +386,14 @@ public class ExTrackImporterPanel extends JPanel
 	{
 		final EverythingDisablerAndReenabler disabler = new EverythingDisablerAndReenabler( getParent(), new Class[] { JLabel.class } );
 		disabler.disable();
+
+		lastImagePath = imagePath;
+		lastDataPath = dataPath;
+		lastPizelSize = pixelSize;
+		lastRadius = radius;
+		lastFrameInterval = frameInterval;
+		lastSpatialUnits = spaceUnits;
+		lastTimeUnits = timeUnits;
 
 		new Thread( "TrackMate-ExTrack importer thread" )
 		{
