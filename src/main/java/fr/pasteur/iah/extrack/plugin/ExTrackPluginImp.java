@@ -6,6 +6,7 @@ import org.scijava.util.VersionUtils;
 
 import fr.pasteur.iah.extrack.trackmate.ExTrackImporter;
 import ij.IJ;
+import ij.ImageJ;
 import ij.ImagePlus;
 import ij.WindowManager;
 import ij.plugin.PlugIn;
@@ -33,5 +34,13 @@ public class ExTrackPluginImp implements PlugIn
 
 		frame.pack();
 		frame.setVisible( true );
+	}
+
+	public static void main( final String[] args )
+	{
+		ImageJ.main( args );
+		IJ.openImage( "samples/img.tif" ).show();
+		ExTrackImporterPanel.lastDataPath = "samples/tracks.npy";
+		new ExTrackPluginImp().run( "" );
 	}
 }

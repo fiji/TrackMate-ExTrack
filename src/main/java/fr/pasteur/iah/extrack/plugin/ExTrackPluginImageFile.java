@@ -5,6 +5,7 @@ import javax.swing.JFrame;
 import org.scijava.util.VersionUtils;
 
 import fr.pasteur.iah.extrack.trackmate.ExTrackImporter;
+import ij.ImageJ;
 import ij.plugin.PlugIn;
 
 public class ExTrackPluginImageFile implements PlugIn
@@ -27,5 +28,13 @@ public class ExTrackPluginImageFile implements PlugIn
 
 		frame.pack();
 		frame.setVisible( true );
+	}
+
+	public static void main( final String[] args )
+	{
+		ImageJ.main( args );
+		ExTrackImporterPanel.lastDataPath = "samples/tracks.npy";
+		ExTrackImporterPanel.lastImagePath = "samples/img.tif";
+		new ExTrackPluginImageFile().run( "" );
 	}
 }
