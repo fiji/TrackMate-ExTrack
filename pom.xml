@@ -10,7 +10,7 @@
 		<version>28.0.0</version>
 	</parent>
 
-	<artifactId>TrackMate-ExTrack</artifactId>
+	<artifactId>TrackMate-ExTrack_</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
 	<name>TrackMate-ExTrack</name>
