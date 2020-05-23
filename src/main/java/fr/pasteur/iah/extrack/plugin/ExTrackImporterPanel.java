@@ -33,7 +33,6 @@ import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.gui.GuiUtils;
 import fiji.plugin.trackmate.gui.TrackMateGUIController;
 import fiji.plugin.trackmate.gui.descriptors.ConfigureViewsDescriptor;
-import fiji.plugin.trackmate.util.DefaultFileFilter.ImageFileFilter;
 import fiji.plugin.trackmate.util.TMUtils;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
@@ -505,7 +504,7 @@ public class ExTrackImporterPanel extends JPanel
 		final File selectedFile = FileChooser.chooseFile(
 				this,
 				path.getAbsolutePath(),
-				new ImageFileFilter( "Image files" ),
+				null,
 				"Select image file",
 				DialogType.LOAD,
 				SelectionMode.FILES_ONLY );
