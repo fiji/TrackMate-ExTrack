@@ -94,6 +94,7 @@ public class ExTrackImporterFromImp extends ExTrackImporter
 
 		// ExTrack features.
 		settings.addSpotAnalyzerFactory( new ExTrackProbabilitiesFeature<>() );
+		settings.addEdgeAnalyzer( new ExTrackEdgeFeatures() );
 		settings.addTrackAnalyzer( new ExTrackTrackInfo() );
 
 		return settings;

@@ -196,6 +196,7 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 		// ExTrack features.
 		settings.addSpotAnalyzerFactory( new ExTrackProbabilitiesFeature<>() );
+		settings.addEdgeAnalyzer( new ExTrackEdgeFeatures() );
 		settings.addTrackAnalyzer( new ExTrackTrackInfo() );
 
 		return settings;
