@@ -51,11 +51,11 @@ public class ExTrackComputer
 			TrMat.set( 1, 0, probabilityOfBinding );
 			TrMat.set( 1, 1, 1 - probabilityOfBinding );
 
-			final int currentStep = 1;
+			int currentStep = 1;
 
 			final Matrix currBs = getAllBs( nbSubSteps );
 			final int currNbBs = currBs.getRowDimension();
-			System.out.println( "currNbBs:" ); // DEBUG
+			System.out.println( "currBs:" ); // DEBUG
 			currBs.print( 2, 0 ); // DEBUG
 
 			/*
@@ -84,6 +84,20 @@ public class ExTrackComputer
 			}
 			System.out.println( "LF:" ); // DEBUG
 			LF.print( 7, 2 ); // DEBUG
+
+			/*
+			 * LP.
+			 */
+
+			final Matrix LP = LT.copy();
+			System.out.println( "LP:" ); // DEBUG
+			LP.print( 7, 2 ); // DEBUG
+
+			// Repeat LP.
+
+			final Matrix LP2 = repeatLines( LP, nbSubSteps + 1 );
+			System.out.println( "LP2:" ); // DEBUG
+			LP2.print( 7, 2 ); // DEBUG
 
 			/*
 			 * Diffusion length matrix.
@@ -137,9 +151,311 @@ public class ExTrackComputer
 			System.out.println( "currDs3:" ); // DEBUG
 			currDs3.print( 7, 2 ); // DEBUG
 
+			/*
+			 * Last detection of the track.
+			 */
+
+			final Matrix currC = new Matrix( 1, track.getColumnDimension() );
+			for ( int c = 0; c < track.getColumnDimension(); c++ )
+				currC.set( 0, c, track.get( track.getRowDimension() - 1, c ) );
+
+			System.out.println( "currC:" ); // DEBUG
+			currC.print( 7, 2 ); // DEBUG
+
+			/*
+			 * Initialize true localization density probability matrices after
+			 * displacement.
+			 */
+
+			final Matrix[] K = firstLogIntegralDiff( currC, localizationError, currDs3 );
+			final Matrix Km = K[ 0 ];
+			final Matrix Ks = K[ 1 ];
+
+			System.out.println( "Km:" ); // DEBUG
+			Km.print( 7, 2 ); // DEBUG
+
+			System.out.println( "Ks:" ); // DEBUG
+			Ks.print( 7, 2 ); // DEBUG
+
+			/*
+			 * Increment current step.
+			 */
+
+			currentStep++;
+
+			/*
+			 * Duplicate Km & Ks.
+			 */
+
+			final Matrix Km2 = repeatLines( Km, nbSubSteps + 1 );
+			System.out.println( "Km2:" ); // DEBUG
+			Km2.print( 7, 2 ); // DEBUG
+
+			final Matrix Ks2 = repeatLines( Ks, nbSubSteps + 1 );
+			System.out.println( "Ks2:" ); // DEBUG
+			Km2.print( 7, 2 ); // DEBUG
+
+			/*
+			 *
+			 */
+
+			final int removeStep = 0;
+
+			/*
+			 * Big iteration loop.
+			 */
+
+			Matrix KmLoop = Km2;
+			Matrix KsLoop = Ks2;
+			Matrix LPLoop = LP2;
+
+			while ( currentStep < nbLocs - 1 && currentStep < 6 )
+			{
+				System.out.println( "\n\n____________________________" ); // DEBUG
+				System.out.println( "current step: " + currentStep ); // DEBUG
+
+				/*
+				 *
+				 */
+
+				System.out.println( "len: " + ( currentStep * nbSubSteps + 1 - removeStep ) ); // DEBUG
+				final Matrix currBsLoop = getAllBs( currentStep * nbSubSteps + 1 - removeStep );
+
+				System.out.println( "currBsLoop: " + currBsLoop.getRowDimension() + " x " + currBsLoop.getColumnDimension() ); // DEBUG
+//				currBsLoop.print( 3, 0 );
+
+				/*
+				 * currStatesLoop
+				 */
+
+				final Matrix currStatesLoop = new Matrix( currBsLoop.getRowDimension(), nbSubSteps + 1 );
+				for ( int r = 0; r < currStatesLoop.getRowDimension(); r++ )
+					for ( int c = 0; c < nbSubSteps + 1; c++ )
+						currStatesLoop.set( r, c, currBsLoop.get( r, c ) );
+
+				System.out.println( "currStatesLoop: " + currStatesLoop.getRowDimension() + " x " + currStatesLoop.getColumnDimension() ); // DEBUG
+//				currStatesLoop.print( 3, 0 );
+
+				/*
+				 * Diffusion length matrix - Loop
+				 */
+
+				final Matrix currDsLoop = new Matrix( currStatesLoop.getRowDimension(), currStatesLoop.getColumnDimension() );
+				for ( int r = 0; r < currDsLoop.getRowDimension(); r++ )
+				{
+					for ( int c = 0; c < currDsLoop.getColumnDimension(); c++ )
+					{
+						final double val = currStatesLoop.get( r, c ) == 0. ? diffusionLengths[ 0 ] : diffusionLengths[ 1 ];
+						currDsLoop.set( r, c, val );
+					}
+				}
+				System.out.println( "currDsLoop: " + currDsLoop.getRowDimension() + " x " + currDsLoop.getColumnDimension() ); // DEBUG
+//				currDsLoop.print( 7, 2 ); // DEBUG
+
+				/*
+				 * Iterate currDsLoop.
+				 */
+
+				final Matrix currDs2Loop = new Matrix( currDsLoop.getRowDimension(), currDsLoop.getColumnDimension() - 1 );
+				for ( int r = 0; r < currDs2Loop.getRowDimension(); r++ )
+				{
+					for ( int c = 0; c < currDs2Loop.getColumnDimension(); c++ )
+					{
+						final double val1 = currDsLoop.get( r, c );
+						final double val2 = currDsLoop.get( r, c + 1 );
+						currDs2Loop.set( r, c, ( val1 + val2 ) / 2. );
+					}
+				}
+				System.out.println( "currDs2Loop: " + currDs2Loop.getRowDimension() + " x " + currDs2Loop.getColumnDimension() ); // DEBUG
+//				currDs2Loop.print( 7, 2 ); // DEBUG
+
+				/*
+				 * Iterate currDsLoop second time.
+				 */
+
+				final Matrix currDs3Loop = new Matrix( currDs2Loop.getRowDimension(), 1 );
+				for ( int r = 0; r < currDs2Loop.getRowDimension(); r++ )
+				{
+					double sumSq = 0.;
+					for ( int c = 0; c < currDs2Loop.getColumnDimension(); c++ )
+					{
+						final double val = currDs2Loop.get( r, c );
+						sumSq += val * val;
+					}
+					final double meanSqRootSumSq = Math.sqrt( sumSq / currDs2Loop.getColumnDimension() );
+					currDs3Loop.set( r, 0, meanSqRootSumSq );
+				}
+
+				System.out.println( "currDs3Loop: " + currDs3Loop.getRowDimension() + " x " + currDs3Loop.getColumnDimension() );
+//				currDs3Loop.print( 7, 2 ); // DEBUG
+
+				/*
+				 * Iterate LT.
+				 */
+
+				final Matrix LTloop = getTsFromBs( currStatesLoop, TrMat );
+
+				System.out.println( "LTloop: " + LTloop.getRowDimension() + " x " + LTloop.getColumnDimension() );
+//				LTloop.print( 7, 2 ); // DEBUG
+
+				/*
+				 * Iterate Km - loop.
+				 */
+
+				KmLoop = repeatLines( KmLoop, ( int ) Math.pow( 2, nbSubSteps ) );
+				System.out.println( "KmLoop: " + KmLoop.getRowDimension() + " x " + KmLoop.getColumnDimension() );
+//				KmLoop.print( 7, 2 ); // DEBUG
+
+				/*
+				 * Iterate Ks - loop.
+				 */
+
+				System.out.println( "KsLoop before: " + ( ( int ) Math.pow( 2, nbSubSteps ) ) + " - " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
+				KsLoop = repeatLines( KsLoop, ( int ) Math.pow( 2, nbSubSteps ) );
+				System.out.println( "KsLoop after: " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
+//				KsLoop.print( 7, 2 ); // DEBUG
+
+				/*
+				 * Iterate LP - loop.
+				 */
+
+				LPLoop = repeatLines( LPLoop, ( int ) Math.pow( 2, nbSubSteps ) );
+				System.out.println( "LPLoop: " + LPLoop.getRowDimension() + " x " + LPLoop.getColumnDimension() );
+//				LPLoop.print( 7, 2 ); // DEBUG
+
+				/*
+				 *
+				 */
+
+				final Matrix currCLoop = new Matrix( 1, nbDims );
+				for ( int c = 0; c < nbDims; c++ )
+				{
+					final int r = nbLocs - currentStep;
+					currCLoop.set( 0, c, track.get( r, c ) );
+				}
+				System.out.println( "currCLoop:" + currCLoop.getRowDimension() + " x " + currCLoop.getColumnDimension() );
+//				currCLoop.print( 7, 2 ); // DEBUG
+
+				final Matrix[] Kloop = logIntegralDiff( currCLoop, localizationError, currDs3Loop, KmLoop, KsLoop );
+				KmLoop = Kloop[ 0 ];
+				KsLoop = Kloop[ 1 ];
+				final Matrix LC = Kloop[ 2 ];
+
+				System.out.println( "new - KmLoop:" + KmLoop.getRowDimension() + " x " + KmLoop.getColumnDimension() );
+//				KmLoop.print( 7, 2 ); // DEBUG
+				System.out.println( "new - KsLoop:" + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
+//				KsLoop.print( 7, 2 ); // DEBUG
+				System.out.println( "new - LC:" + LC.getRowDimension() + " x " + LC.getColumnDimension() );
+//				LC.print( 7, 2 ); // DEBUG
+
+				/*
+				 * Iterate.
+				 */
+
+				currentStep++;
+			}
+
 			break; // FIXME
 		}
 
+	}
+
+	private static Matrix[] logIntegralDiff(
+			final Matrix currCLoop,
+			final double localizationError,
+			final Matrix currDs3Loop,
+			final Matrix KmLoop,
+			final Matrix KsLoop )
+	{
+		final int nbDims = currCLoop.getColumnDimension();
+
+		final Matrix Km = new Matrix( KmLoop.getRowDimension(), KmLoop.getColumnDimension() );
+		final Matrix Ks = new Matrix( KsLoop.getRowDimension(), 1 );
+		final Matrix LC = new Matrix( KsLoop.getRowDimension(), 1 );
+
+		for ( int r = 0; r < KmLoop.getRowDimension(); r++ )
+		{
+			for ( int c = 0; c < KmLoop.getColumnDimension(); c++ )
+			{
+				final double km = KmLoop.get( r, c );
+				final double ks = KsLoop.get( r, 0 );
+				final double val = ( km * localizationError * localizationError + currCLoop.get( 0, c ) * ks * ks )
+						/ ( localizationError * localizationError + ks * ks );
+				Km.set( r, c, val );
+			}
+		}
+
+		for ( int r = 0; r < KsLoop.getRowDimension(); r++ )
+		{
+			final double ks = KsLoop.get( r, 0 );
+			final double cd = currDs3Loop.get( r, 0 );
+			final double val = Math.sqrt(
+					( cd * cd * localizationError * localizationError
+							+ cd * cd * ks * ks
+							+ localizationError * localizationError * ks * ks )
+							/ ( localizationError * localizationError + ks * ks ) );
+			Ks.set( r, 0, val );
+		}
+
+		for ( int r = 0; r < LC.getRowDimension(); r++ )
+		{
+			final double ks = KsLoop.get( r, 0 );
+			final double ksOut = Ks.get( r, 0 );
+			final double cd = currDs3Loop.get( r, 0 );
+
+			double sumKm = 0.;
+			for ( int c = 0; c < KmLoop.getColumnDimension(); c++ )
+			{
+				final double cc = currCLoop.get( 0, c );
+				final double kmOut = Km.get( r, c );
+				final double km = KmLoop.get( r, c );
+				sumKm += ( kmOut * kmOut / ( 2 * ksOut * ksOut )
+						- ( km * km * localizationError * localizationError + ks * ks * cc * cc + ( km - cc ) * ( km - cc ) * cd * cd )
+								/ ( 2 * ksOut * ksOut * ( localizationError * localizationError + ks * ks ) ) );
+			}
+
+			LC.set( r, 0, sumKm + nbDims * Math.log( 1. /
+					( Math.sqrt( 2 * Math.PI * ( localizationError * localizationError + ks * ks ) ) ) ) );
+
+		}
+
+		return new Matrix[] { Km, Ks, LC };
+	}
+
+	private static Matrix repeatLines( final Matrix M, final int n )
+	{
+		final Matrix N = new Matrix( n * M.getRowDimension(), M.getColumnDimension() );
+		for ( int c = 0; c < M.getColumnDimension(); c++ )
+		{
+			for ( int r = 0; r < M.getRowDimension(); r++ )
+			{
+				final int nr = n * r;
+				for ( int inc = 0; inc < n; inc++ )
+				{
+					final double val = M.get( r, c );
+					N.set( nr + inc, c, val );
+				}
+			}
+		}
+		return N;
+	}
+
+	private static Matrix[] firstLogIntegralDiff( final Matrix currC, final double localizationError, final Matrix currDs3 )
+	{
+		final Matrix Km = new Matrix( currDs3.getRowDimension(), currC.getColumnDimension() );
+		for ( int r = 0; r < currDs3.getRowDimension(); r++ )
+			for ( int c = 0; c < currC.getColumnDimension(); c++ )
+				Km.set( r, c, currC.get( 0, c ) );
+
+		final Matrix Ks = new Matrix( currDs3.getRowDimension(), 1 );
+		for ( int r = 0; r < currDs3.getRowDimension(); r++ )
+		{
+			final double valCurrDs = currDs3.get( r, 0 );
+			final double val = Math.sqrt( localizationError * localizationError + valCurrDs * valCurrDs );
+			Ks.set( r, 0, val );
+		}
+
+		return new Matrix[] { Km, Ks };
 	}
 
 	private static Matrix getTsFromBs( final Matrix currStates, final Matrix TrMat )
