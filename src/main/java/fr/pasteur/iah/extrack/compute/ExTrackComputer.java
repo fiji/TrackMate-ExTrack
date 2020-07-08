@@ -1,5 +1,7 @@
 package fr.pasteur.iah.extrack.compute;
 
+import java.text.DecimalFormat;
+import java.util.HashMap;
 import java.util.Map;
 
 import Jama.Matrix;
@@ -54,7 +56,7 @@ public class ExTrackComputer
 			int currentStep = 1;
 
 			final Matrix currBs = getAllBs( nbSubSteps );
-			final int currNbBs = currBs.getRowDimension();
+			int currNbBs = currBs.getRowDimension();
 			System.out.println( "currBs:" ); // DEBUG
 			currBs.print( 2, 0 ); // DEBUG
 
@@ -71,19 +73,6 @@ public class ExTrackComputer
 			final Matrix LT = getTsFromBs( currStates, TrMat );
 			System.out.println( "LT:" ); // DEBUG
 			LT.print( 7, 2 ); // DEBUG
-
-			/*
-			 * Log of probabilities to be bound at the beginning.
-			 */
-
-			final Matrix LF = new Matrix( currStates.getRowDimension(), 1 );
-			for ( int r = 0; r < LF.getRowDimension(); r++ )
-			{
-				final double val = currStates.get( r, currStates.getColumnDimension() - 1 ) == 0. ? Fs[ 0 ] : Fs[ 1 ];
-				LF.set( r, 0, Math.log( val ) );
-			}
-			System.out.println( "LF:" ); // DEBUG
-			LF.print( 7, 2 ); // DEBUG
 
 			/*
 			 * LP.
@@ -199,7 +188,7 @@ public class ExTrackComputer
 			 *
 			 */
 
-			final int removeStep = 0;
+			int removeStep = 0;
 
 			/*
 			 * Big iteration loop.
@@ -207,7 +196,8 @@ public class ExTrackComputer
 
 			Matrix KmLoop = Km2;
 			Matrix KsLoop = Ks2;
-			Matrix LPLoop = LP2;
+			Matrix LPloop = LP2;
+			Matrix currStatesLoop = null;
 
 			while ( currentStep < nbLocs - 1 && currentStep < 6 )
 			{
@@ -219,7 +209,7 @@ public class ExTrackComputer
 				 */
 
 				System.out.println( "len: " + ( currentStep * nbSubSteps + 1 - removeStep ) ); // DEBUG
-				final Matrix currBsLoop = getAllBs( currentStep * nbSubSteps + 1 - removeStep );
+				Matrix currBsLoop = getAllBs( currentStep * nbSubSteps + 1 - removeStep );
 
 				System.out.println( "currBsLoop: " + currBsLoop.getRowDimension() + " x " + currBsLoop.getColumnDimension() ); // DEBUG
 //				currBsLoop.print( 3, 0 );
@@ -228,7 +218,7 @@ public class ExTrackComputer
 				 * currStatesLoop
 				 */
 
-				final Matrix currStatesLoop = new Matrix( currBsLoop.getRowDimension(), nbSubSteps + 1 );
+				currStatesLoop = new Matrix( currBsLoop.getRowDimension(), nbSubSteps + 1 );
 				for ( int r = 0; r < currStatesLoop.getRowDimension(); r++ )
 					for ( int c = 0; c < nbSubSteps + 1; c++ )
 						currStatesLoop.set( r, c, currBsLoop.get( r, c ) );
@@ -319,8 +309,8 @@ public class ExTrackComputer
 				 * Iterate LP - loop.
 				 */
 
-				LPLoop = repeatLines( LPLoop, ( int ) Math.pow( 2, nbSubSteps ) );
-				System.out.println( "LPLoop: " + LPLoop.getRowDimension() + " x " + LPLoop.getColumnDimension() );
+				LPloop = repeatLines( LPloop, ( int ) Math.pow( 2, nbSubSteps ) );
+				System.out.println( "LPLoop: " + LPloop.getRowDimension() + " x " + LPloop.getColumnDimension() );
 //				LPLoop.print( 7, 2 ); // DEBUG
 
 				/*
@@ -349,15 +339,192 @@ public class ExTrackComputer
 //				LC.print( 7, 2 ); // DEBUG
 
 				/*
+				 * Update the value of LP.
+				 */
+
+				LPloop = LPloop.plus( LTloop ).plus( LC );
+
+				/*
+				 * 
+				 */
+
+				if ( doFrame && currentStep < nbLocs - 1 )
+				{
+					while ( currNbBs >= ( int ) Math.pow( 2, frameLen ) )
+					{
+						// TODO later: do predictions.
+
+						/*
+						 * Update currBs.
+						 */
+
+						final Matrix currBsLoopTmp = new Matrix(
+								currBsLoop.getRowDimension() / 2,
+								currBsLoop.getColumnDimension() - 1 );
+						for ( int r = 0; r < currBsLoopTmp.getRowDimension(); r++ )
+							for ( int c = 0; c < currBsLoop.getColumnDimension(); c++ )
+								currBsLoopTmp.set( r, c, currBsLoop.get( r, c ) );
+						currBsLoop = currBsLoopTmp;
+
+						final Matrix[] Kloop2 = fuseTracks(
+								KmLoop,
+								KsLoop,
+								LTloop,
+								currBsLoop.getRowDimension() );
+						KmLoop = Kloop2[ 0 ];
+						KsLoop = Kloop2[ 1 ];
+						LPloop = Kloop2[ 2 ];
+
+						currNbBs = currBsLoop.getRowDimension();
+						removeStep += 1;
+					} // while
+				} // if
+
+				/*
 				 * Iterate.
 				 */
 
 				currentStep++;
+
+			} // while ( currentStep < nbLocs - 1 && currentStep < 6 )
+
+			/*
+			 * Compute new value for KsLoop.
+			 */
+
+			final Matrix KsLoopTmp = new Matrix( KsLoop.getRowDimension(), 1 );
+			for ( int r = 0; r < KsLoop.getRowDimension(); r++ )
+			{
+				final double ks = KsLoop.get( r, 0 );
+				final double val = Math.sqrt( ks * ks + localizationError * localizationError );
+				KsLoopTmp.set( r, 0, val );
+			}
+			KsLoop = KsLoopTmp;
+
+			/*
+			 * Compute real value of probability.
+			 */
+
+			final Matrix logIntegratedTerm = new Matrix( KsLoop.getRowDimension(), 1 );
+			for ( int r = 0; r < KsLoop.getRowDimension(); r++ )
+			{
+				final double ks = KsLoop.get( r, 0 );
+				final double km = KmLoop.get( r, 0 );
+				double sumC = 0.;
+				for ( int c = 0; c < track.getColumnDimension(); c++ )
+				{
+					final double t = track.get( 0, c );
+					final double dx = ( t - km );
+					sumC += dx * dx;
+				}
+				final double val = Math.log( 2. * Math.PI * ks * ks ) - sumC / ( 2. * ks * ks );
+				logIntegratedTerm.set( r, 0, val );
 			}
 
-			break; // FIXME
+			/*
+			 * Log of probabilities to be bound.
+			 */
+
+			final Matrix LF = new Matrix( currStatesLoop.getRowDimension(), 1 );
+			for ( int r = 0; r < LF.getRowDimension(); r++ )
+			{
+				final double val = currStatesLoop.get( r, currStatesLoop.getColumnDimension() - 1 ) == 0.
+						? Fs[ 0 ]
+						: Fs[ 1 ];
+				LF.set( r, 0, Math.log( val ) );
+			}
+			System.out.println( "LF:" ); // DEBUG
+			LF.print( 7, 2 ); // DEBUG
+
+			/*
+			 * Update LPloop.
+			 */
+
+			LPloop = LPloop.plus( logIntegratedTerm ).plus( LF );
+
+			System.out.println( "\nLPloop after update:" ); // DEBUG
+			LPloop.print( 7, 2 ); // DEBUG
+
+			final Matrix P = new Matrix( LPloop.getRowDimension(), LPloop.getColumnDimension() );
+			for ( int r = 0; r < LPloop.getRowDimension(); r++ )
+				for ( int c = 0; c < LPloop.getColumnDimension(); c++ )
+					P.set( r, c, Math.exp( LPloop.get( r, c ) ) );
+
+			System.out.println( "\nP:" ); // DEBUG
+			final DecimalFormat format = new DecimalFormat( "0.#####E0" );
+			P.print( format, 10 ); // DEBUG
+
+		} // loop on tracks.
+	}
+
+	private static Matrix[] fuseTracks( final Matrix Km, final Matrix Ks, final Matrix LP, final int currNbBs )
+	{
+		final int i = currNbBs / 2;
+
+		final Matrix LP0 = LP.getMatrix( 0, i, 0, 0 );
+		final Matrix LP1 = LP.getMatrix( i + 1, currNbBs - 1, 0, 0 );
+
+		final Matrix maxLP = new Matrix( LP0.getRowDimension(), 1 );
+		for ( int r = 0; r < LP0.getRowDimension(); r++ )
+		{
+			final double lp0 = LP0.get( r, 0 );
+			final double lp1 = LP1.get( r, 0 );
+			maxLP.set( r, 0, Math.max( lp0, lp1 ) );
 		}
 
+		final Matrix P0 = new Matrix( LP0.getRowDimension(), 1 );
+		for ( int r = 0; r < P0.getRowDimension(); r++ )
+		{
+			final double lp0 = LP0.get( r, 0 );
+			final double mlp = maxLP.get( r, 0 );
+			final double val = Math.exp( lp0 - mlp );
+			P0.set( r, 0, val );
+		}
+
+		final Matrix P1 = new Matrix( LP1.getRowDimension(), 1 );
+		for ( int r = 0; r < P1.getRowDimension(); r++ )
+		{
+			final double lp1 = LP1.get( r, 0 );
+			final double mlp = maxLP.get( r, 0 );
+			final double val = Math.exp( lp1 - mlp );
+			P1.set( r, 0, val );
+		}
+
+		final Matrix SP = P0.plus( P1 );
+		final Matrix A0 = P0.arrayRightDivide( SP );
+		final Matrix A1 = P1.arrayRightDivide( SP );
+
+		final Matrix Km0 = Km.getMatrix( 0, i, 0, Km.getColumnDimension() - 1 );
+		final Matrix Km1 = Km.getMatrix( i + 1, Km.getRowDimension() - 1, 0, Km.getColumnDimension() - 1 );
+
+		final Matrix Ks0 = Ks.getMatrix( 0, i, 0, Ks.getColumnDimension() - 1 );
+		final Matrix Ks1 = Ks.getMatrix( i + 1, Ks.getRowDimension() - 1, 0, Ks.getColumnDimension() - 1 );
+
+		final Matrix KmNew = ( A0.arrayTimes( Km0 ) ).plus( ( A1.arrayTimes( Km1 ) ) );
+		final Matrix KsNew = new Matrix( A0.getRowDimension(), A0.getColumnDimension() );
+		for ( int r = 0; r < KsNew.getRowDimension(); r++ )
+		{
+			for ( int c = 0; c < KsNew.getColumnDimension(); c++ )
+			{
+				final double a0 = A0.get( r, c );
+				final double a1 = A1.get( r, c );
+				final double ks0 = Ks0.get( r, c );
+				final double ks1 = Ks1.get( r, c );
+				final double val = Math.sqrt( a0 * ks0 * ks0 + a1 * ks1 * ks1 );
+				KsNew.set( r, c, val );
+			}
+		}
+
+		final Matrix LPNew = new Matrix( LP.getRowDimension(), 1 );
+		for ( int r = 0; r < LP.getRowDimension(); r++ )
+		{
+			final double sp = SP.get( r, 0 );
+			final double mlp = maxLP.get( r, 0 );
+			final double val = mlp + Math.log( sp );
+			LPNew.set( r, 0, val );
+		}
+
+		return new Matrix[] { KmNew, KsNew, LPNew };
 	}
 
 	private static Matrix[] logIntegralDiff(
@@ -532,6 +699,39 @@ public class ExTrackComputer
 		}
 
 		return allBs;
+	}
+
+	public static void main( final String[] args )
+	{
+		final Map< Integer, Matrix > Cs = new HashMap<>();
+		final Matrix cs0 = new Matrix( new double[][] {
+				{ 0.1, -0.1 },
+				{ 0.11, -0.12 },
+				{ 0.13, -0.09 },
+				{ 0.2, -0.05 },
+				{ 0.1, 0.5 } } );
+		Cs.put( Integer.valueOf( 0 ), cs0 );
+		final double localizationError = 0.03;
+		final double[] diffusionLengths = new double[] { 1e-10, 0.05 };
+		final double[] Fs = new double[] { 0.6, 0.4 };
+		final double probabilityOfUnbinding = 0.1;
+		final double probabilityOfBinding = 0.2;
+		final int frameLen = 10;
+		final int nbSubSteps = 1;
+		final boolean doFrame = true;
+		final boolean doPred = false;
+
+		pCsInterBoundState(
+				Cs,
+				localizationError,
+				diffusionLengths,
+				Fs,
+				probabilityOfUnbinding,
+				probabilityOfBinding,
+				nbSubSteps,
+				doFrame,
+				frameLen,
+				doPred );
 	}
 
 }
