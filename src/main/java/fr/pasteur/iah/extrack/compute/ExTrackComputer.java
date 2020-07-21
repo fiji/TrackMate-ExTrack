@@ -54,13 +54,15 @@ public class ExTrackComputer
 			TrMat.set( 0, 1, probabilityOfUnbinding );
 			TrMat.set( 1, 0, probabilityOfBinding );
 			TrMat.set( 1, 1, 1 - probabilityOfBinding );
+			System.out.println( "TrMat:" ); // DEBUG
+			TrMat.print( 7, 4 ); // DEBUG
 
 			int currentStep = 1;
 
 			final Matrix currBs = getAllBs( nbSubSteps );
 			int currNbBs = currBs.getRowDimension();
-//			System.out.println( "currBs:" ); // DEBUG
-//			currBs.print( 2, 0 ); // DEBUG
+			System.out.println( "currBs:" ); // DEBUG
+			currBs.print( 2, 0 ); // DEBUG
 
 			/*
 			 * States matrix.
@@ -74,7 +76,7 @@ public class ExTrackComputer
 
 			final Matrix LT = getTsFromBs( currStates, TrMat );
 //			System.out.println( "LT:" ); // DEBUG
-//			LT.print( 7, 2 ); // DEBUG
+//			LT.print( 7, 4 ); // DEBUG
 
 			/*
 			 * LP.
@@ -213,7 +215,7 @@ public class ExTrackComputer
 				System.out.println( "len: " + ( currentStep * nbSubSteps + 1 - removeStep ) ); // DEBUG
 				Matrix currBsLoop = getAllBs( currentStep * nbSubSteps + 1 - removeStep );
 
-//				System.out.println( "currBsLoop: " + currBsLoop.getRowDimension() + " x " + currBsLoop.getColumnDimension() ); // DEBUG
+				System.out.println( "currBsLoop: " + currBsLoop.getRowDimension() + " x " + currBsLoop.getColumnDimension() ); // DEBUG
 //				currBsLoop.print( 3, 0 );
 
 				/*
@@ -632,36 +634,13 @@ public class ExTrackComputer
 
 	private static Matrix getTsFromBs( final Matrix currStates, final Matrix TrMat )
 	{
-		final Matrix LTtemp = new Matrix( currStates.getRowDimension(), currStates.getColumnDimension() - 1 );
-		for ( int r = 0; r < LTtemp.getRowDimension(); r++ )
+		final Matrix LTtemp = new Matrix( currStates.getRowDimension(), 1 );
+		for ( int r = 0; r < currStates.getRowDimension(); r++ )
 		{
-			for ( int c = 0; c < LTtemp.getColumnDimension(); c++ )
-			{
-				final int val1 = ( int ) currStates.get( r, c );
-				final int val2 = ( int ) currStates.get( r, c + 1 );
-
-				final int stateId = val1 + 2 * val2;
-				final double val;
-				switch ( stateId )
-				{
-				case 0:
-					val = TrMat.get( 0, 0 );
-					break;
-				case 1:
-					val = TrMat.get( 1, 0 );
-					break;
-				case 2:
-					val = TrMat.get( 0, 1 );
-					break;
-				case 3:
-					val = TrMat.get( 1, 1 );
-					break;
-				default:
-					throw new IllegalStateException( "This state ID should not exist for 2 states: " + stateId );
-				}
-
-				LTtemp.set( r, c, val );
-			}
+			final int val1 = ( int ) currStates.get( r, 0 );
+			final int val2 = ( int ) currStates.get( r, 1 );
+			final double val = TrMat.get( val1, val2 );
+			LTtemp.set( r, 0, val );
 		}
 
 		final Matrix LT = new Matrix( currStates.getRowDimension(), 1 );
