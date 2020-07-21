@@ -9,6 +9,8 @@ import Jama.Matrix;
 public class ExTrackComputer
 {
 
+	private static final DecimalFormat format = new DecimalFormat( "0.#####E0" );
+
 	/**
 	 *
 	 * @param Cs
@@ -57,8 +59,8 @@ public class ExTrackComputer
 
 			final Matrix currBs = getAllBs( nbSubSteps );
 			int currNbBs = currBs.getRowDimension();
-			System.out.println( "currBs:" ); // DEBUG
-			currBs.print( 2, 0 ); // DEBUG
+//			System.out.println( "currBs:" ); // DEBUG
+//			currBs.print( 2, 0 ); // DEBUG
 
 			/*
 			 * States matrix.
@@ -71,8 +73,8 @@ public class ExTrackComputer
 			 */
 
 			final Matrix LT = getTsFromBs( currStates, TrMat );
-			System.out.println( "LT:" ); // DEBUG
-			LT.print( 7, 2 ); // DEBUG
+//			System.out.println( "LT:" ); // DEBUG
+//			LT.print( 7, 2 ); // DEBUG
 
 			/*
 			 * LP.
@@ -80,13 +82,13 @@ public class ExTrackComputer
 
 			final Matrix LP = LT.copy();
 			System.out.println( "LP:" ); // DEBUG
-			LP.print( 7, 2 ); // DEBUG
+			LP.print( 7, 4 ); // DEBUG
 
 			// Repeat LP.
 
 			final Matrix LP2 = repeatLines( LP, nbSubSteps + 1 );
-			System.out.println( "LP2:" ); // DEBUG
-			LP2.print( 7, 2 ); // DEBUG
+//			System.out.println( "LP2:" ); // DEBUG
+//			LP2.print( 7, 2 ); // DEBUG
 
 			/*
 			 * Diffusion length matrix.
@@ -101,8 +103,8 @@ public class ExTrackComputer
 					currDs.set( r, c, val );
 				}
 			}
-			System.out.println( "currDs:" ); // DEBUG
-			currDs.print( 7, 2 ); // DEBUG
+//			System.out.println( "currDs:" ); // DEBUG
+//			currDs.print( format, 10 ); // DEBUG
 
 			/*
 			 * Iterate currDs.
@@ -118,8 +120,8 @@ public class ExTrackComputer
 					currDs2.set( r, c, ( val1 + val2 ) / 2. );
 				}
 			}
-			System.out.println( "currDs2:" ); // DEBUG
-			currDs2.print( 7, 2 ); // DEBUG
+//			System.out.println( "currDs2:" ); // DEBUG
+//			currDs2.print( format, 7 ); // DEBUG
 
 			/*
 			 * Iterate currDs second time.
@@ -138,7 +140,7 @@ public class ExTrackComputer
 				currDs3.set( r, 0, meanSqRootSumSq );
 			}
 			System.out.println( "currDs3:" ); // DEBUG
-			currDs3.print( 7, 2 ); // DEBUG
+			currDs3.print( format, 7 ); // DEBUG
 
 			/*
 			 * Last detection of the track.
@@ -148,8 +150,8 @@ public class ExTrackComputer
 			for ( int c = 0; c < track.getColumnDimension(); c++ )
 				currC.set( 0, c, track.get( track.getRowDimension() - 1, c ) );
 
-			System.out.println( "currC:" ); // DEBUG
-			currC.print( 7, 2 ); // DEBUG
+//			System.out.println( "currC:" ); // DEBUG
+//			currC.print( 7, 2 ); // DEBUG
 
 			/*
 			 * Initialize true localization density probability matrices after
@@ -164,7 +166,7 @@ public class ExTrackComputer
 			Km.print( 7, 2 ); // DEBUG
 
 			System.out.println( "Ks:" ); // DEBUG
-			Ks.print( 7, 2 ); // DEBUG
+			Ks.print( 10, 5 ); // DEBUG
 
 			/*
 			 * Increment current step.
@@ -177,12 +179,12 @@ public class ExTrackComputer
 			 */
 
 			final Matrix Km2 = repeatLines( Km, nbSubSteps + 1 );
-			System.out.println( "Km2:" ); // DEBUG
-			Km2.print( 7, 2 ); // DEBUG
+//			System.out.println( "Km2:" ); // DEBUG
+//			Km2.print( 7, 2 ); // DEBUG
 
 			final Matrix Ks2 = repeatLines( Ks, nbSubSteps + 1 );
-			System.out.println( "Ks2:" ); // DEBUG
-			Km2.print( 7, 2 ); // DEBUG
+//			System.out.println( "Ks2:" ); // DEBUG
+//			Km2.print( 7, 2 ); // DEBUG
 
 			/*
 			 *
@@ -211,7 +213,7 @@ public class ExTrackComputer
 				System.out.println( "len: " + ( currentStep * nbSubSteps + 1 - removeStep ) ); // DEBUG
 				Matrix currBsLoop = getAllBs( currentStep * nbSubSteps + 1 - removeStep );
 
-				System.out.println( "currBsLoop: " + currBsLoop.getRowDimension() + " x " + currBsLoop.getColumnDimension() ); // DEBUG
+//				System.out.println( "currBsLoop: " + currBsLoop.getRowDimension() + " x " + currBsLoop.getColumnDimension() ); // DEBUG
 //				currBsLoop.print( 3, 0 );
 
 				/*
@@ -223,7 +225,7 @@ public class ExTrackComputer
 					for ( int c = 0; c < nbSubSteps + 1; c++ )
 						currStatesLoop.set( r, c, currBsLoop.get( r, c ) );
 
-				System.out.println( "currStatesLoop: " + currStatesLoop.getRowDimension() + " x " + currStatesLoop.getColumnDimension() ); // DEBUG
+//				System.out.println( "currStatesLoop: " + currStatesLoop.getRowDimension() + " x " + currStatesLoop.getColumnDimension() ); // DEBUG
 //				currStatesLoop.print( 3, 0 );
 
 				/*
@@ -239,8 +241,8 @@ public class ExTrackComputer
 						currDsLoop.set( r, c, val );
 					}
 				}
-				System.out.println( "currDsLoop: " + currDsLoop.getRowDimension() + " x " + currDsLoop.getColumnDimension() ); // DEBUG
-//				currDsLoop.print( 7, 2 ); // DEBUG
+//				System.out.println( "currDsLoop: " + currDsLoop.getRowDimension() + " x " + currDsLoop.getColumnDimension() ); // DEBUG
+//				currDsLoop.print( format, 7 ); // DEBUG
 
 				/*
 				 * Iterate currDsLoop.
@@ -256,8 +258,8 @@ public class ExTrackComputer
 						currDs2Loop.set( r, c, ( val1 + val2 ) / 2. );
 					}
 				}
-				System.out.println( "currDs2Loop: " + currDs2Loop.getRowDimension() + " x " + currDs2Loop.getColumnDimension() ); // DEBUG
-//				currDs2Loop.print( 7, 2 ); // DEBUG
+//				System.out.println( "currDs2Loop: " + currDs2Loop.getRowDimension() + " x " + currDs2Loop.getColumnDimension() ); // DEBUG
+//				currDs2Loop.print( format, 7 ); // DEBUG
 
 				/*
 				 * Iterate currDsLoop second time.
@@ -277,7 +279,7 @@ public class ExTrackComputer
 				}
 
 				System.out.println( "currDs3Loop: " + currDs3Loop.getRowDimension() + " x " + currDs3Loop.getColumnDimension() );
-//				currDs3Loop.print( 7, 2 ); // DEBUG
+				currDs3Loop.print( format, 7 ); // DEBUG
 
 				/*
 				 * Iterate LT.
@@ -285,7 +287,7 @@ public class ExTrackComputer
 
 				final Matrix LTloop = getTsFromBs( currStatesLoop, TrMat );
 
-				System.out.println( "LTloop: " + LTloop.getRowDimension() + " x " + LTloop.getColumnDimension() );
+//				System.out.println( "LTloop: " + LTloop.getRowDimension() + " x " + LTloop.getColumnDimension() );
 //				LTloop.print( 7, 2 ); // DEBUG
 
 				/*
@@ -293,16 +295,16 @@ public class ExTrackComputer
 				 */
 
 				KmLoop = repeatLines( KmLoop, ( int ) Math.pow( 2, nbSubSteps ) );
-				System.out.println( "KmLoop: " + KmLoop.getRowDimension() + " x " + KmLoop.getColumnDimension() );
+//				System.out.println( "KmLoop: " + KmLoop.getRowDimension() + " x " + KmLoop.getColumnDimension() );
 //				KmLoop.print( 7, 2 ); // DEBUG
 
 				/*
 				 * Iterate Ks - loop.
 				 */
 
-				System.out.println( "KsLoop before: " + ( ( int ) Math.pow( 2, nbSubSteps ) ) + " - " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
+//				System.out.println( "KsLoop before: " + ( ( int ) Math.pow( 2, nbSubSteps ) ) + " - " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
 				KsLoop = repeatLines( KsLoop, ( int ) Math.pow( 2, nbSubSteps ) );
-				System.out.println( "KsLoop after: " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
+//				System.out.println( "KsLoop after: " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
 //				KsLoop.print( 7, 2 ); // DEBUG
 
 				/*
@@ -310,8 +312,8 @@ public class ExTrackComputer
 				 */
 
 				LPloop = repeatLines( LPloop, ( int ) Math.pow( 2, nbSubSteps ) );
-				System.out.println( "LPLoop: " + LPloop.getRowDimension() + " x " + LPloop.getColumnDimension() );
-//				LPLoop.print( 7, 2 ); // DEBUG
+//				System.out.println( "LPLoop: " + LPloop.getRowDimension() + " x " + LPloop.getColumnDimension() );
+//				LPloop.print( format, 7 ); // DEBUG
 
 				/*
 				 *
@@ -323,7 +325,7 @@ public class ExTrackComputer
 					final int r = nbLocs - currentStep;
 					currCLoop.set( 0, c, track.get( r, c ) );
 				}
-				System.out.println( "currCLoop:" + currCLoop.getRowDimension() + " x " + currCLoop.getColumnDimension() );
+//				System.out.println( "currCLoop:" + currCLoop.getRowDimension() + " x " + currCLoop.getColumnDimension() );
 //				currCLoop.print( 7, 2 ); // DEBUG
 
 				final Matrix[] Kloop = logIntegralDiff( currCLoop, localizationError, currDs3Loop, KmLoop, KsLoop );
@@ -332,10 +334,10 @@ public class ExTrackComputer
 				final Matrix LC = Kloop[ 2 ];
 
 				System.out.println( "new - KmLoop:" + KmLoop.getRowDimension() + " x " + KmLoop.getColumnDimension() );
-//				KmLoop.print( 7, 2 ); // DEBUG
+				KmLoop.print( format, 7 ); // DEBUG
 				System.out.println( "new - KsLoop:" + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
-//				KsLoop.print( 7, 2 ); // DEBUG
-				System.out.println( "new - LC:" + LC.getRowDimension() + " x " + LC.getColumnDimension() );
+				KsLoop.print( format, 7 ); // DEBUG
+//				System.out.println( "new - LC:" + LC.getRowDimension() + " x " + LC.getColumnDimension() );
 //				LC.print( 7, 2 ); // DEBUG
 
 				/*
@@ -344,8 +346,12 @@ public class ExTrackComputer
 
 				LPloop = LPloop.plus( LTloop ).plus( LC );
 
+				System.out.println( "LPLoop: " + LPloop.getRowDimension() + " x " + LPloop.getColumnDimension() );
+				LPloop.print( format, 7 ); // DEBUG
+
+
 				/*
-				 * 
+				 *
 				 */
 
 				if ( doFrame && currentStep < nbLocs - 1 )
@@ -451,7 +457,6 @@ public class ExTrackComputer
 					P.set( r, c, Math.exp( LPloop.get( r, c ) ) );
 
 			System.out.println( "\nP:" ); // DEBUG
-			final DecimalFormat format = new DecimalFormat( "0.#####E0" );
 			P.print( format, 10 ); // DEBUG
 
 		} // loop on tracks.
