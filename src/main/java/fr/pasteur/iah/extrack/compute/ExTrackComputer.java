@@ -59,7 +59,7 @@ public class ExTrackComputer
 
 			int currentStep = 1;
 
-			final Matrix currBs = getAllBs( nbSubSteps );
+			final Matrix currBs = getAllBs( nbSubSteps + 1 );
 			int currNbBs = currBs.getRowDimension();
 			System.out.println( "currBs:" ); // DEBUG
 			currBs.print( 2, 0 ); // DEBUG
@@ -88,7 +88,8 @@ public class ExTrackComputer
 
 			// Repeat LP.
 
-			final Matrix LP2 = repeatLines( LP, nbSubSteps + 1 );
+			final Matrix LP2 = LP;
+//			final Matrix LP2 = repeatLines( LP, nbSubSteps + 1 );
 //			System.out.println( "LP2:" ); // DEBUG
 //			LP2.print( 7, 2 ); // DEBUG
 
@@ -180,13 +181,15 @@ public class ExTrackComputer
 			 * Duplicate Km & Ks.
 			 */
 
-			final Matrix Km2 = repeatLines( Km, nbSubSteps + 1 );
+//			final Matrix Km2 = repeatLines( Km, nbSubSteps + 1 );
 //			System.out.println( "Km2:" ); // DEBUG
 //			Km2.print( 7, 2 ); // DEBUG
+			final Matrix Km2 = Km;
 
-			final Matrix Ks2 = repeatLines( Ks, nbSubSteps + 1 );
+//			final Matrix Ks2 = repeatLines( Ks, nbSubSteps + 1 );
 //			System.out.println( "Ks2:" ); // DEBUG
-//			Km2.print( 7, 2 ); // DEBUG
+//			Ks2.print( 7, 2 ); // DEBUG
+			final Matrix Ks2 = Ks;
 
 			/*
 			 *
@@ -203,7 +206,7 @@ public class ExTrackComputer
 			Matrix LPloop = LP2;
 			Matrix currStatesLoop = null;
 
-			while ( currentStep < nbLocs - 1 && currentStep < 6 )
+			while ( currentStep <= nbLocs - 1 && currentStep < 16 )
 			{
 				System.out.println( "\n\n____________________________" ); // DEBUG
 				System.out.println( "current step: " + currentStep ); // DEBUG
@@ -288,16 +291,15 @@ public class ExTrackComputer
 				 */
 
 				final Matrix LTloop = getTsFromBs( currStatesLoop, TrMat );
-
-//				System.out.println( "LTloop: " + LTloop.getRowDimension() + " x " + LTloop.getColumnDimension() );
-//				LTloop.print( 7, 2 ); // DEBUG
+				System.out.println( "LTloop: " + LTloop.getRowDimension() + " x " + LTloop.getColumnDimension() );
+				LTloop.print( 7, 2 ); // DEBUG
 
 				/*
 				 * Iterate Km - loop.
 				 */
 
 				KmLoop = repeatLines( KmLoop, ( int ) Math.pow( 2, nbSubSteps ) );
-//				System.out.println( "KmLoop: " + KmLoop.getRowDimension() + " x " + KmLoop.getColumnDimension() );
+				System.out.println( "KmLoop: " + KmLoop.getRowDimension() + " x " + KmLoop.getColumnDimension() );
 //				KmLoop.print( 7, 2 ); // DEBUG
 
 				/*
@@ -306,7 +308,7 @@ public class ExTrackComputer
 
 //				System.out.println( "KsLoop before: " + ( ( int ) Math.pow( 2, nbSubSteps ) ) + " - " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
 				KsLoop = repeatLines( KsLoop, ( int ) Math.pow( 2, nbSubSteps ) );
-//				System.out.println( "KsLoop after: " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
+				System.out.println( "KsLoop after: " + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
 //				KsLoop.print( 7, 2 ); // DEBUG
 
 				/*
@@ -314,8 +316,8 @@ public class ExTrackComputer
 				 */
 
 				LPloop = repeatLines( LPloop, ( int ) Math.pow( 2, nbSubSteps ) );
-//				System.out.println( "LPLoop: " + LPloop.getRowDimension() + " x " + LPloop.getColumnDimension() );
-//				LPloop.print( format, 7 ); // DEBUG
+				System.out.println( "LPLoop: " + LPloop.getRowDimension() + " x " + LPloop.getColumnDimension() );
+				LPloop.print( format, 7 ); // DEBUG
 
 				/*
 				 *
@@ -327,7 +329,7 @@ public class ExTrackComputer
 					final int r = nbLocs - currentStep;
 					currCLoop.set( 0, c, track.get( r, c ) );
 				}
-//				System.out.println( "currCLoop:" + currCLoop.getRowDimension() + " x " + currCLoop.getColumnDimension() );
+				System.out.println( "currCLoop:" + currCLoop.getRowDimension() + " x " + currCLoop.getColumnDimension() );
 //				currCLoop.print( 7, 2 ); // DEBUG
 
 				final Matrix[] Kloop = logIntegralDiff( currCLoop, localizationError, currDs3Loop, KmLoop, KsLoop );
@@ -339,8 +341,8 @@ public class ExTrackComputer
 				KmLoop.print( format, 7 ); // DEBUG
 				System.out.println( "new - KsLoop:" + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
 				KsLoop.print( format, 7 ); // DEBUG
-//				System.out.println( "new - LC:" + LC.getRowDimension() + " x " + LC.getColumnDimension() );
-//				LC.print( 7, 2 ); // DEBUG
+				System.out.println( "new - LC:" + LC.getRowDimension() + " x " + LC.getColumnDimension() );
+				LC.print( 7, 2 ); // DEBUG
 
 				/*
 				 * Update the value of LP.
@@ -350,7 +352,6 @@ public class ExTrackComputer
 
 				System.out.println( "LPLoop: " + LPloop.getRowDimension() + " x " + LPloop.getColumnDimension() );
 				LPloop.print( format, 7 ); // DEBUG
-
 
 				/*
 				 *
@@ -396,6 +397,10 @@ public class ExTrackComputer
 
 			} // while ( currentStep < nbLocs - 1 && currentStep < 6 )
 
+			System.out.println( "\n\n____________________________" ); // DEBUG
+			System.out.println( "out of the big loop with: " + currentStep ); // DEBUG
+
+
 			/*
 			 * Compute new value for KsLoop.
 			 */
@@ -408,6 +413,8 @@ public class ExTrackComputer
 				KsLoopTmp.set( r, 0, val );
 			}
 			KsLoop = KsLoopTmp;
+			System.out.println( "new Ks:" + KsLoop.getRowDimension() + " x " + KsLoop.getColumnDimension() );
+			KsLoop.print( format, 7 ); // DEBUG
 
 			/*
 			 * Compute real value of probability.
@@ -417,17 +424,20 @@ public class ExTrackComputer
 			for ( int r = 0; r < KsLoop.getRowDimension(); r++ )
 			{
 				final double ks = KsLoop.get( r, 0 );
-				final double km = KmLoop.get( r, 0 );
 				double sumC = 0.;
 				for ( int c = 0; c < track.getColumnDimension(); c++ )
 				{
+					final double km = KmLoop.get( r, c );
 					final double t = track.get( 0, c );
 					final double dx = ( t - km );
 					sumC += dx * dx;
 				}
-				final double val = Math.log( 2. * Math.PI * ks * ks ) - sumC / ( 2. * ks * ks );
+				final double val = - Math.log( 2. * Math.PI * ks * ks ) - sumC / ( 2. * ks * ks );
 				logIntegratedTerm.set( r, 0, val );
 			}
+
+			System.out.println( "logIntegratedTerm:" + logIntegratedTerm.getRowDimension() + " x " + logIntegratedTerm.getColumnDimension() );
+			logIntegratedTerm.print( format, 7 ); // DEBUG
 
 			/*
 			 * Log of probabilities to be bound.
@@ -661,7 +671,7 @@ public class ExTrackComputer
 		allBs.set( 0, 0, 0. );
 		allBs.set( 1, 0, 1. );
 
-		for ( int i = 0; i < nbSubSteps; i++ )
+		for ( int i = 0; i < nbSubSteps - 1; i++ )
 		{
 			final Matrix nAllBs = new Matrix( 2 * allBs.getRowDimension(), allBs.getColumnDimension() + 1 );
 
