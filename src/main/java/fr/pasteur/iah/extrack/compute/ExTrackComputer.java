@@ -120,7 +120,7 @@ public class ExTrackComputer
 				{
 					final double val1 = currDs.get( r, c );
 					final double val2 = currDs.get( r, c + 1 );
-					currDs2.set( r, c, ( val1 + val2 ) / 2. );
+					currDs2.set( r, c, Math.sqrt( ( val1 * val1 + val2 * val2 ) / 2. ) );
 				}
 			}
 //			System.out.println( "currDs2:" ); // DEBUG
@@ -260,7 +260,8 @@ public class ExTrackComputer
 					{
 						final double val1 = currDsLoop.get( r, c );
 						final double val2 = currDsLoop.get( r, c + 1 );
-						currDs2Loop.set( r, c, ( val1 + val2 ) / 2. );
+						currDs2Loop.set( r, c, Math.sqrt( ( val1 * val1 + val2 * val2 ) / 2. ) );
+
 					}
 				}
 //				System.out.println( "currDs2Loop: " + currDs2Loop.getRowDimension() + " x " + currDs2Loop.getColumnDimension() ); // DEBUG
