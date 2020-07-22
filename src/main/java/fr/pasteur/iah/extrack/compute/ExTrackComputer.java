@@ -447,7 +447,7 @@ public class ExTrackComputer
 			final Matrix LF = new Matrix( currStatesLoop.getRowDimension(), 1 );
 			for ( int r = 0; r < LF.getRowDimension(); r++ )
 			{
-				final double val = currStatesLoop.get( r, currStatesLoop.getColumnDimension() - 1 ) == 0.
+				final double val = currStatesLoop.get( r, 0 ) == 0.
 						? Fs[ 0 ]
 						: Fs[ 1 ];
 				LF.set( r, 0, Math.log( val ) );
