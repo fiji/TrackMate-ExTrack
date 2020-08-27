@@ -4,6 +4,13 @@ import Jama.Matrix;
 
 public class TrackState
 {
+//	private static final DecimalFormat format = new DecimalFormat( "0.#####E0" );
+
+	public final Matrix P;
+
+	public final Matrix pred;
+
+	public final Matrix currBs;
 
 	public TrackState(
 			final Matrix track,
@@ -17,11 +24,6 @@ public class TrackState
 			final int frameLen,
 			final boolean doPred )
 	{
-
-		if ( doPred )
-		{
-			// TODO
-		}
 
 		/*
 		 * Initialize.
@@ -42,13 +44,15 @@ public class TrackState
 		 */
 
 		int currentStep = 2;
-		final int nbLocs = track.getRowDimension();
 		int removeStep = 0;
 		Matrix currStates = null;
+		final int nbLocs = track.getRowDimension();
+		final Matrix pred = ( doPred ) ? new Matrix( nbLocs, 2, -1. ) : null;
+		Matrix currBs = null;
 
 		while ( currentStep <= nbLocs - 1 && currentStep < 16 )
 		{
-			Matrix currBs = createCurrBs( currentStep * nbSubSteps + 1 - removeStep );
+			currBs = createCurrBs( currentStep * nbSubSteps + 1 - removeStep );
 			currStates = createStateMatrix( currBs, nbSubSteps );
 			final Matrix currDs = initDiffusionLengthMatrix( currStates, diffusionLengths );
 			final Matrix LT = initLogTransitionProbaMatrix( currStates, TrMat );
@@ -78,27 +82,100 @@ public class TrackState
 			{
 				while ( currNbBs >= ( int ) Math.pow( 2, frameLen ) )
 				{
-					// TODO later: do predictions.
+					if ( doPred )
+					{
+						/*
+						 * Compute new value for KsLoop.
+						 */
+
+						final Matrix KsPred = new Matrix( Ks.getRowDimension(), 1 );
+						for ( int r = 0; r < Ks.getRowDimension(); r++ )
+						{
+							final double ks = Ks.get( r, 0 );
+							final double val = Math.sqrt( ks * ks + localizationError * localizationError );
+							KsPred.set( r, 0, val );
+						}
+
+						/*
+						 * Compute real value of probability.
+						 */
+
+						final Matrix logIntegratedTerm = new Matrix( KsPred.getRowDimension(), 1 );
+						for ( int r = 0; r < KsPred.getRowDimension(); r++ )
+						{
+							final double ks = KsPred.get( r, 0 );
+							double sumC = 0.;
+							for ( int c = 0; c < track.getColumnDimension(); c++ )
+							{
+								final double km = Km.get( r, c );
+								final double t = track.get( nbLocs - currentStep, c );
+								final double dx = ( t - km );
+								sumC += dx * dx;
+							}
+							final double val = -Math.log( 2. * Math.PI * ks * ks ) - sumC / ( 2. * ks * ks );
+							logIntegratedTerm.set( r, 0, val );
+						}
+
+						/*
+						 * Log of probabilities to be bound.
+						 */
+
+						final Matrix LFPred = new Matrix( currStates.getRowDimension(), 1 );
+						for ( int r = 0; r < LFPred.getRowDimension(); r++ )
+						{
+							final double val = currStates.get( r, 0 ) == 0.
+									? Fs[ 0 ]
+									: Fs[ 1 ];
+							LFPred.set( r, 0, Math.log( val ) );
+						}
+
+						/*
+						 * Update LPloop.
+						 */
+
+						final Matrix LPPred = LP.plus( logIntegratedTerm ).plus( LFPred );
+
+						final Matrix PPred = new Matrix( LPPred.getRowDimension(), LPPred.getColumnDimension() );
+						for ( int r = 0; r < LPPred.getRowDimension(); r++ )
+							for ( int c = 0; c < LPPred.getColumnDimension(); c++ )
+								PPred.set( r, c, Math.exp( LPPred.get( r, c ) ) );
+
+						for ( int state = 0; state < 2; state++ )
+						{
+
+							// Conditional sum & global sum of P.
+							double conditionalSumPPred = 0.;
+							double sumPPred = 0.;
+							for ( int r = 0; r < PPred.getRowDimension(); r++ )
+							{
+								final double p = PPred.get( r, 0 );
+								sumPPred += p;
+								final double stateID = currBs.get( r, currBs.getColumnDimension() - 1 );
+								if ( state == stateID )
+									conditionalSumPPred += p;
+							}
+
+							final double val = conditionalSumPPred / sumPPred;
+							pred.set( nbLocs - currentStep + frameLen - 2, state, val );
+						}
+					}
 
 					/*
 					 * Update currBs.
 					 */
 
-					System.out.println( "currBs: " + currBs.getRowDimension() + " x " + currBs.getColumnDimension() );
-
 					final Matrix currBsLoopTmp = new Matrix(
 							currBs.getRowDimension() / 2,
 							currBs.getColumnDimension() - 1 );
 					for ( int r = 0; r < currBsLoopTmp.getRowDimension(); r++ )
-						for ( int c = 0; c < currBs.getColumnDimension(); c++ )
+						for ( int c = 0; c < currBsLoopTmp.getColumnDimension(); c++ )
 							currBsLoopTmp.set( r, c, currBs.get( r, c ) );
 					currBs = currBsLoopTmp;
 
 					final Matrix[] Kloop2 = fuseTracks(
 							Km,
 							Ks,
-							LT,
-							currBs.getRowDimension() );
+							LP );
 					Km = Kloop2[ 0 ];
 					Ks = Kloop2[ 1 ];
 					LP = Kloop2[ 2 ];
@@ -171,14 +248,48 @@ public class TrackState
 		for ( int r = 0; r < LP.getRowDimension(); r++ )
 			for ( int c = 0; c < LP.getColumnDimension(); c++ )
 				P.set( r, c, Math.exp( LP.get( r, c ) ) );
+
+		/*
+		 * Update predictions.
+		 */
+
+		if ( doPred )
+		{
+			for ( int state = 0; state < 2; state++ )
+			{
+				for ( int rowPred = 0; rowPred < frameLen; rowPred++ )
+				{
+
+					// Conditional sum & global sum of P.
+					double conditionalSumPPred = 0.;
+					double sumPPred = 0.;
+					for ( int r = 0; r < P.getRowDimension(); r++ )
+					{
+						final double p = P.get( r, 0 );
+						sumPPred += p;
+						final double stateID = currBs.get( r, rowPred );
+						if ( state == stateID )
+							conditionalSumPPred += p;
+					}
+
+					final double val = conditionalSumPPred / sumPPred;
+					pred.set( rowPred, state, val );
+				}
+			}
+		}
+
+		this.P = P;
+		this.pred = pred;
+		this.currBs = currBs;
 	}
 
-	private static Matrix[] fuseTracks( final Matrix Km, final Matrix Ks, final Matrix LP, final int currNbBs )
+	private static Matrix[] fuseTracks( final Matrix Km, final Matrix Ks, final Matrix LP )
 	{
+		final int currNbBs = LP.getRowDimension();
 		final int i = currNbBs / 2;
 
-		final Matrix LP0 = LP.getMatrix( 0, i, 0, 0 );
-		final Matrix LP1 = LP.getMatrix( i + 1, currNbBs - 1, 0, 0 );
+		final Matrix LP0 = LP.getMatrix( 0, i - 1, 0, 0 );
+		final Matrix LP1 = LP.getMatrix( i, currNbBs - 1, 0, 0 );
 
 		final Matrix maxLP = new Matrix( LP0.getRowDimension(), 1 );
 		for ( int r = 0; r < LP0.getRowDimension(); r++ )
@@ -210,13 +321,24 @@ public class TrackState
 		final Matrix A0 = P0.arrayRightDivide( SP );
 		final Matrix A1 = P1.arrayRightDivide( SP );
 
-		final Matrix Km0 = Km.getMatrix( 0, i, 0, Km.getColumnDimension() - 1 );
-		final Matrix Km1 = Km.getMatrix( i + 1, Km.getRowDimension() - 1, 0, Km.getColumnDimension() - 1 );
+		final Matrix Km0 = Km.getMatrix( 0, i - 1, 0, Km.getColumnDimension() - 1 );
+		final Matrix Km1 = Km.getMatrix( i, Km.getRowDimension() - 1, 0, Km.getColumnDimension() - 1 );
 
-		final Matrix Ks0 = Ks.getMatrix( 0, i, 0, Ks.getColumnDimension() - 1 );
-		final Matrix Ks1 = Ks.getMatrix( i + 1, Ks.getRowDimension() - 1, 0, Ks.getColumnDimension() - 1 );
+		final Matrix Ks0 = Ks.getMatrix( 0, i - 1, 0, Ks.getColumnDimension() - 1 );
+		final Matrix Ks1 = Ks.getMatrix( i, Ks.getRowDimension() - 1, 0, Ks.getColumnDimension() - 1 );
 
-		final Matrix KmNew = ( A0.arrayTimes( Km0 ) ).plus( ( A1.arrayTimes( Km1 ) ) );
+		final Matrix KmNew = new Matrix( Km0.getRowDimension(), Km0.getColumnDimension() );
+		for ( int r = 0; r < KmNew.getRowDimension(); r++ )
+		{
+			for ( int c = 0; c < KmNew.getColumnDimension(); c++ )
+			{
+				final double a0 = A0.get( r, 0 );
+				final double km0 = Km0.get( r, c );
+				final double a1 = A1.get( r, 0 );
+				final double km1 = Km1.get( r, c );
+				KmNew.set( r, c, a0 * km0 + a1 * km1 );
+			}
+		}
 		final Matrix KsNew = new Matrix( A0.getRowDimension(), A0.getColumnDimension() );
 		for ( int r = 0; r < KsNew.getRowDimension(); r++ )
 		{
@@ -231,8 +353,8 @@ public class TrackState
 			}
 		}
 
-		final Matrix LPNew = new Matrix( LP.getRowDimension(), 1 );
-		for ( int r = 0; r < LP.getRowDimension(); r++ )
+		final Matrix LPNew = new Matrix( LP0.getRowDimension(), 1 );
+		for ( int r = 0; r < LP0.getRowDimension(); r++ )
 		{
 			final double sp = SP.get( r, 0 );
 			final double mlp = maxLP.get( r, 0 );
@@ -499,10 +621,10 @@ public class TrackState
 		final double[] Fs = new double[] { 0.6, 0.4 };
 		final double probabilityOfUnbinding = 0.1;
 		final double probabilityOfBinding = 0.2;
-		final int frameLen = 10;
+		final int frameLen = 3;
 		final int nbSubSteps = 1;
 		final boolean doFrame = true;
-		final boolean doPred = false;
+		final boolean doPred = true;
 
 		new TrackState(
 				cs0,
