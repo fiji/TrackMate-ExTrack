@@ -1,7 +1,7 @@
 package fr.pasteur.iah.extrack.compute;
 
-import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +13,6 @@ import org.scijava.plugin.Plugin;
 
 import Jama.Matrix;
 import fiji.plugin.trackmate.Model;
-import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.TrackModel;
@@ -21,7 +20,7 @@ import fiji.plugin.trackmate.action.AbstractTMAction;
 import fiji.plugin.trackmate.action.TrackMateAction;
 import fiji.plugin.trackmate.action.TrackMateActionFactory;
 import fiji.plugin.trackmate.gui.TrackMateGUIController;
-import fiji.plugin.trackmate.io.TmXmlReader;
+import pal.math.ConjugateDirectionSearch;
 
 public class ExTrackComputeAction extends AbstractTMAction
 {
@@ -73,7 +72,7 @@ public class ExTrackComputeAction extends AbstractTMAction
 			Cs.put( trackID, cs );
 		}
 
-		ExTrackComputer.pCsInterBoundState(
+		execute(
 				Cs,
 				localizationError,
 				diffusionLengths,
@@ -83,8 +82,43 @@ public class ExTrackComputeAction extends AbstractTMAction
 				nbSubSteps,
 				doFrame,
 				frameLen,
-				doPred);
+				doPred );
+	}
 
+	public void execute(
+			final Map< Integer, Matrix > Cs,
+			final double localizationError,
+			final double[] diffusionLengths,
+			final double[] Fs,
+			final double probabilityOfUnbinding,
+			final double probabilityOfBinding,
+			final int nbSubSteps,
+			final boolean doFrame,
+			final int frameLen,
+			final boolean doPred )
+	{
+
+		/*
+		 * Perform optimization. Optimizer is Powell optimizer updated by Brent.
+		 */
+		final ConjugateDirectionSearch optimizer = new ConjugateDirectionSearch();
+		optimizer.prin = 2;
+
+		final double[] startingPoint = new double[] {
+				localizationError,
+				diffusionLengths[ 0 ],
+				diffusionLengths[ 1 ],
+				Fs[ 0 ],
+				probabilityOfUnbinding };
+		final double tolfx = 1e-6;
+		final double tolx = 1e-6;;
+
+		System.out.println( "Starting optmization." );
+		optimizer.optimize(
+				new NegativeLikelihoodFunction( Cs, nbSubSteps, doFrame, frameLen ),
+				startingPoint,
+				tolfx, tolx );
+		System.out.println( "Optmization done." );
 	}
 
 	@Plugin( type = TrackMateActionFactory.class )
@@ -125,18 +159,33 @@ public class ExTrackComputeAction extends AbstractTMAction
 
 	public static void main( final String[] args )
 	{
-		final File file = new File( "samples/FakeTracks.xml" );
-		final TmXmlReader reader = new TmXmlReader( file );
-		final Model model = reader.getModel();
-		final TrackMate trackmate = new TrackMate( model, new Settings() );
+		final Matrix cs0 = new Matrix( new double[][] {
+				{ 0.1, -0.1 },
+				{ 0.11, -0.12 },
+				{ 0.13, -0.09 },
+				{ 0.2, -0.05 },
+				{ 0.1, 0.5 } } );
+		final double localizationError = 0.03;
+		final double[] diffusionLengths = new double[] { 1e-10, 0.05 };
+		final double[] Fs = new double[] { 0.6, 0.4 };
+		final double probabilityOfUnbinding = 0.1;
+		final double probabilityOfBinding = 0.2;
+		final int frameLen = 3;
+		final int nbSubSteps = 1;
+		final boolean doFrame = true;
+		final boolean doPred = true;
 
-
-
-//		ImageJ.main( args );
-//		final LoadTrackMatePlugIn_ loader = new LoadTrackMatePlugIn_();
-//		loader.run( file.getAbsolutePath() );
-
-		new ExTrackComputeAction().execute( trackmate );
+		new ExTrackComputeAction().execute(
+				Collections.singletonMap( Integer.valueOf( 0 ), cs0 ),
+				localizationError,
+				diffusionLengths,
+				Fs,
+				probabilityOfUnbinding,
+				probabilityOfBinding,
+				nbSubSteps,
+				doFrame,
+				frameLen,
+				doPred );
 	}
 
 }
