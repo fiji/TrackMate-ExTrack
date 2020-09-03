@@ -39,15 +39,15 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 		 * 0. localizationError
 		 */
 
-		lowerBound[ 0 ] = 0.;
+		lowerBound[ 0 ] = 0.005;
 		upperBound[ 0 ] = 100.; // um
 
 		/*
 		 * 1. diffusionLengths0
 		 */
 
-		lowerBound[ 1 ] = 0.;
-		upperBound[ 1 ] = 100.; // um
+		lowerBound[ 1 ] = 1e-10;
+		upperBound[ 1 ] = 10.; // um
 
 		/*
 		 * 2. diffusionLengths1
@@ -60,15 +60,15 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 		 * 3. F0.
 		 */
 
-		lowerBound[ 3 ] = 0.;
-		upperBound[ 3 ] = 1.;
+		lowerBound[ 3 ] = 0.01;
+		upperBound[ 3 ] = 0.99;
 
 		/*
 		 * 4. probabilityOfUnbinding
 		 */
 
-		lowerBound[ 4 ] = 0.;
-		upperBound[ 4 ] = 1.;
+		lowerBound[ 4 ] = 0.01;
+		upperBound[ 4 ] = 0.99;
 	}
 
 	@Override
@@ -112,7 +112,9 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 		final double[] diffusionLengths = new double[] { diffusionLengths0, diffusionLengths1 };
 		final double F1 = 1 - F0;
 		final double[] Fs = new double[] { F0, F1 };
-		final double probabilityOfBinding = F0 / ( 1 - F0 ) * probabilityOfUnbinding;
+
+		double probabilityOfBinding = F0 / ( 1 - F0 ) * probabilityOfUnbinding;
+		probabilityOfBinding = 1. - Math.exp( -probabilityOfBinding );
 
 		double sumLogProbas = 0;
 		for ( final Integer trackID : Cs.keySet() )
