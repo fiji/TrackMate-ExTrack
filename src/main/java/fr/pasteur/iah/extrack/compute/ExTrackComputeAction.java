@@ -1,5 +1,7 @@
 package fr.pasteur.iah.extrack.compute;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import fiji.plugin.trackmate.action.AbstractTMAction;
 import fiji.plugin.trackmate.action.TrackMateAction;
 import fiji.plugin.trackmate.action.TrackMateActionFactory;
 import fiji.plugin.trackmate.gui.TrackMateGUIController;
+import fr.pasteur.iah.extrack.numpy.NumPyReader;
 import pal.math.ConjugateDirectionSearch;
 
 public class ExTrackComputeAction extends AbstractTMAction
@@ -103,22 +106,29 @@ public class ExTrackComputeAction extends AbstractTMAction
 		 */
 		final ConjugateDirectionSearch optimizer = new ConjugateDirectionSearch();
 		optimizer.prin = 2;
+		optimizer.step = 0.01;
 
-		final double[] startingPoint = new double[] {
+		final double[] parameters = new double[] {
 				localizationError,
 				diffusionLengths[ 0 ],
 				diffusionLengths[ 1 ],
 				Fs[ 0 ],
 				probabilityOfUnbinding };
 		final double tolfx = 1e-6;
-		final double tolx = 1e-6;;
+		final double tolx = 1e-6;
 
 		System.out.println( "Starting optmization." );
 		optimizer.optimize(
 				new NegativeLikelihoodFunction( Cs, nbSubSteps, doFrame, frameLen ),
-				startingPoint,
+				parameters,
 				tolfx, tolx );
-		System.out.println( "Optmization done." );
+		System.out.println( "Optimization done." );
+
+		System.out.println( String.format( "%30s: %10.5f", "localizationError", parameters[ 0 ] ) );
+		System.out.println( String.format( "%30s: %10.5f", "diffusionLengths_0", parameters[ 1 ] ) );
+		System.out.println( String.format( "%30s: %10.5f", "diffusionLengths_1", parameters[ 2 ] ) );
+		System.out.println( String.format( "%30s: %10.5f", "Fs0", parameters[ 3 ] ) );
+		System.out.println( String.format( "%30s: %10.5f", "probabilityOfUnbinding", parameters[ 4 ] ) );
 	}
 
 	@Plugin( type = TrackMateActionFactory.class )
@@ -157,35 +167,121 @@ public class ExTrackComputeAction extends AbstractTMAction
 
 	}
 
-	public static void main( final String[] args )
+	public static void main( final String[] args ) throws FileNotFoundException, IOException
 	{
-		final Matrix cs0 = new Matrix( new double[][] {
-				{ 0.1, -0.1 },
-				{ 0.11, -0.12 },
-				{ 0.13, -0.09 },
-				{ 0.2, -0.05 },
-				{ 0.1, 0.5 } } );
-		final double localizationError = 0.03;
-		final double[] diffusionLengths = new double[] { 1e-10, 0.05 };
-		final double[] Fs = new double[] { 0.6, 0.4 };
-		final double probabilityOfUnbinding = 0.1;
-		final double probabilityOfBinding = 0.2;
-		final int frameLen = 3;
+
+		/*
+		 * Python implementation values.
+		 */
+
+		final double pyLocalizationError = 0.0201;
+		final double pyD0 = 1.225e-5;
+		final double dt = 0.02; // s.
+		final double pyDiffusionLength0 = Math.sqrt( 2. * pyD0 * dt );
+		final double pyD1 = 0.0996;
+		final double pyDiffusionLength1 = Math.sqrt( 2. * pyD1 * dt );
+		final double pyF0 =  0.6894;
+		final double pyProbabilityOfUnbinding = 0.0844;
+		final double[] pyValues = new double[] {
+				pyLocalizationError,
+				pyDiffusionLength0,
+				pyDiffusionLength1,
+				pyF0,
+				pyProbabilityOfUnbinding
+		};
+
+		/*
+		 * Load data.
+		 */
+
+		final String trackFile = "samples/sim_tracks.npy";
+		final double[][] data = NumPyReader.readFile( trackFile );
+		final Map< Integer, Matrix > tracks = new HashMap<>();
+
+		int idx = 0;
+		int trackID = ( int ) data[ 3 ][ 0 ];
+		for ( int i = 0; i < data[ 0 ].length; i++ )
+		{
+			if ( trackID != data[ 3 ][ i ] || i == ( data[ 0 ].length - 1 ) )
+			{
+				// We changed track id. Backtrack to the start of it.
+
+				final int nRows = i - idx;
+				final Matrix cs = new Matrix( nRows, 2 );
+				for ( int r = 0; r < nRows; r++ )
+				{
+					cs.set( r, 0, data[ 0 ][ i - nRows + r ] );
+					cs.set( r, 1, data[ 0 ][ i - nRows + r ] );
+				}
+				tracks.put( Integer.valueOf( trackID ), cs );
+				idx = i;
+				trackID = ( int ) data[ 3 ][ i ];
+			}
+		}
+
+		/*
+		 * Neg likelihood for the Python implementation.
+		 */
+
+		final int frameLen = 10;
 		final int nbSubSteps = 1;
 		final boolean doFrame = true;
 		final boolean doPred = true;
+		final NegativeLikelihoodFunction fun = new NegativeLikelihoodFunction( tracks, nbSubSteps, doFrame, frameLen );
 
-		new ExTrackComputeAction().execute(
-				Collections.singletonMap( Integer.valueOf( 0 ), cs0 ),
-				localizationError,
-				diffusionLengths,
-				Fs,
-				probabilityOfUnbinding,
-				probabilityOfBinding,
-				nbSubSteps,
-				doFrame,
-				frameLen,
-				doPred );
+		final double pyNegLoLH = fun.evaluate( pyValues );
+		System.out.println( "Expected Python implementation NLLH: " + pyNegLoLH );
+
+		/*
+		 * Ground truth.
+		 */
+
+		final double gtLocalizationError = 0.02;
+		final double gtD0 = 1.e-10;
+		final double gtDiffusionLength0 = Math.sqrt( 2. * gtD0 * dt );
+		final double gtD1 = 0.1;
+		final double gtDiffusionLength1 = Math.sqrt( 2. * gtD1 * dt );
+		final double gtF0 =  2. / 3.;
+		final double gtProbabilityOfUnbinding = 0.1;
+		final double[] gtValues = new double[] {
+				pyLocalizationError,
+				pyDiffusionLength0,
+				pyDiffusionLength1,
+				pyF0,
+				pyProbabilityOfUnbinding
+		};
+
+		/*
+		 * Check values.
+		 */
+
+		final Matrix track = tracks.get( 0 );
+		final NegativeLikelihoodFunction funCheck = new NegativeLikelihoodFunction( Collections.singletonMap( 0, track ), nbSubSteps, doFrame, frameLen );
+		final double gtNLLH = funCheck.evaluate( gtValues );
+		System.out.println( "Expected GT NLLH: " + gtNLLH );
+
+
+		/*
+		 * Optimize.
+		 */
+
+//		final double localizationError = 0.03;
+//		final double[] diffusionLengths = new double[] { 1e-5, 0.2 };
+//		final double[] Fs = new double[] { 0.6, 0.4 };
+//		final double probabilityOfUnbinding = 0.15;
+//		final double probabilityOfBinding = 0.25;
+//
+//		new ExTrackComputeAction().execute(
+//				tracks,
+//				localizationError,
+//				diffusionLengths,
+//				Fs,
+//				probabilityOfUnbinding,
+//				probabilityOfBinding,
+//				nbSubSteps,
+//				doFrame,
+//				frameLen,
+//				doPred );
 	}
 
 }
