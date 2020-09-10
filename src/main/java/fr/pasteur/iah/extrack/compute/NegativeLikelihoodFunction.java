@@ -46,7 +46,7 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 		 * 1. diffusionLengths0
 		 */
 
-		lowerBound[ 1 ] = 1e-10;
+		lowerBound[ 1 ] = 1e-100;
 		upperBound[ 1 ] = 10.; // um
 
 		/*
@@ -97,48 +97,47 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 
 	public static final double evalFun(
 			final double[] params,
-			final Map< Integer, Matrix > Cs,
+			final Map< Integer, Matrix > tracks,
 			final int nbSubSteps,
 			final boolean doFrame,
 			final int frameLen )
 	{
 		final double localizationError = params[ 0 ];
-		final double diffusionLengths0 = params[ 1 ];
-		final double diffusionLengths1 = params[ 2 ];
+		final double diffusionLength0 = params[ 1 ];
+		final double diffusionLength1 = params[ 2 ];
 		final double F0 = params[ 3 ];
-		final double probabilityOfUnbinding = params[ 4 ];
+		final double probabilityOfUnbindingContinuous = params[ 4 ];
 
 		final boolean doPred = false;
-		final double[] diffusionLengths = new double[] { diffusionLengths0, diffusionLengths1 };
-		final double F1 = 1 - F0;
+
+		final double probabilityOfBindingContinuous = F0 / ( 1 - F0 ) * probabilityOfUnbindingContinuous;
+		final double[] diffusionLengths = new double[] { diffusionLength0, diffusionLength1 };
+		final double F1 = 1. - F0;
 		final double[] Fs = new double[] { F0, F1 };
 
-		double probabilityOfBinding = F0 / ( 1 - F0 ) * probabilityOfUnbinding;
-		probabilityOfBinding = 1. - Math.exp( -probabilityOfBinding );
-
 		double sumLogProbas = 0;
-		for ( final Integer trackID : Cs.keySet() )
+		final TrackState state = new TrackState(
+				localizationError,
+				diffusionLengths,
+				Fs,
+				probabilityOfUnbindingContinuous,
+				probabilityOfBindingContinuous,
+				nbSubSteps,
+				doFrame,
+				frameLen,
+				doPred );
+		for ( final Integer trackID : tracks.keySet() )
 		{
-			final Matrix track = Cs.get( trackID );
-			final TrackState state = new TrackState(
-					track,
-					localizationError,
-					diffusionLengths,
-					Fs,
-					probabilityOfUnbinding,
-					probabilityOfBinding,
-					nbSubSteps,
-					doFrame,
-					frameLen,
-					doPred );
+			final Matrix track = tracks.get( trackID );
+			final Matrix probabilities = state.eval( track );
 
-			final Matrix probabilities = state.P;
 			double sumProba = 0.;
 			for ( int r = 0; r < probabilities.getRowDimension(); r++ )
 				sumProba += probabilities.get( r, 0 );
 
 			sumLogProbas += Math.log( sumProba );
 		}
+
 		return -sumLogProbas;
 	}
 }

@@ -4,26 +4,53 @@ import Jama.Matrix;
 
 public class TrackState
 {
-//	private static final DecimalFormat format = new DecimalFormat( "0.#####E0" );
 
-	public final Matrix P;
+	private final double localizationError;
 
-	public final Matrix pred;
+	private final double[] diffusionLengths;
 
-	public final Matrix currBs;
+	private final double[] Fs;
+
+	private final double probabilityOfUnbindingContinuous;
+
+	private final double probabilityOfBindingContinuous;
+
+	private final int nbSubSteps;
+
+	private final boolean doFrame;
+
+	private final int frameLen;
+
+	private final boolean doPred;
 
 	public TrackState(
-			final Matrix track,
 			final double localizationError,
 			final double[] diffusionLengths,
 			final double[] Fs,
-			final double probabilityOfUnbinding,
-			final double probabilityOfBinding,
+			final double probabilityOfUnbindingContinuous,
+			final double probabilityOfBindingContinuous,
 			final int nbSubSteps,
 			final boolean doFrame,
 			final int frameLen,
 			final boolean doPred )
 	{
+		this.localizationError = localizationError;
+		this.diffusionLengths = diffusionLengths;
+		this.Fs = Fs;
+		this.probabilityOfUnbindingContinuous = probabilityOfUnbindingContinuous;
+		this.probabilityOfBindingContinuous = probabilityOfBindingContinuous;
+		this.nbSubSteps = nbSubSteps;
+		this.doFrame = doFrame;
+		this.frameLen = frameLen;
+		this.doPred = doPred;
+	}
+
+	public Matrix eval( final Matrix track )
+	{
+
+		// Correct input probabilities from continuous to discrete.
+		final double probabilityOfUnbinding = 1. - Math.exp( -probabilityOfUnbindingContinuous / nbSubSteps );
+		final double probabilityOfBinding = 1. - Math.exp( -probabilityOfBindingContinuous / nbSubSteps );
 
 		/*
 		 * Initialize.
@@ -50,7 +77,7 @@ public class TrackState
 		final Matrix pred = ( doPred ) ? new Matrix( nbLocs, 2, -1. ) : null;
 		Matrix currBs = null;
 
-		while ( currentStep <= nbLocs - 1 && currentStep < 16 )
+		while ( currentStep <= nbLocs - 1 )
 		{
 			currBs = createCurrBs( currentStep * nbSubSteps + 1 - removeStep );
 			currStates = createStateMatrix( currBs, nbSubSteps );
@@ -277,10 +304,7 @@ public class TrackState
 				}
 			}
 		}
-
-		this.P = P;
-		this.pred = pred;
-		this.currBs = currBs;
+		return P;
 	}
 
 	private static Matrix[] fuseTracks( final Matrix Km, final Matrix Ks, final Matrix LP )
@@ -602,40 +626,5 @@ public class TrackState
 		for ( int c = 0; c < track.getColumnDimension(); c++ )
 			row.set( 0, c, track.get( n, c ) );
 		return row;
-	}
-
-	/*
-	 * MAIN
-	 */
-
-	public static void main( final String[] args )
-	{
-		final Matrix cs0 = new Matrix( new double[][] {
-				{ 0.1, -0.1 },
-				{ 0.11, -0.12 },
-				{ 0.13, -0.09 },
-				{ 0.2, -0.05 },
-				{ 0.1, 0.5 } } );
-		final double localizationError = 0.03;
-		final double[] diffusionLengths = new double[] { 1e-10, 0.05 };
-		final double[] Fs = new double[] { 0.6, 0.4 };
-		final double probabilityOfUnbinding = 0.1;
-		final double probabilityOfBinding = 0.2;
-		final int frameLen = 3;
-		final int nbSubSteps = 1;
-		final boolean doFrame = true;
-		final boolean doPred = true;
-
-		new TrackState(
-				cs0,
-				localizationError,
-				diffusionLengths,
-				Fs,
-				probabilityOfUnbinding,
-				probabilityOfBinding,
-				nbSubSteps,
-				doFrame,
-				frameLen,
-				doPred );
 	}
 }
