@@ -110,18 +110,13 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 
 		final boolean doPred = false;
 
-		final double probabilityOfBindingContinuous = F0 / ( 1 - F0 ) * probabilityOfUnbindingContinuous;
-		final double[] diffusionLengths = new double[] { diffusionLength0, diffusionLength1 };
-		final double F1 = 1. - F0;
-		final double[] Fs = new double[] { F0, F1 };
-
-		double sumLogProbas = 0;
+		double sumLogProbas = 0.;
 		final TrackState state = new TrackState(
 				localizationError,
-				diffusionLengths,
-				Fs,
+				diffusionLength0,
+				diffusionLength1,
+				F0,
 				probabilityOfUnbindingContinuous,
-				probabilityOfBindingContinuous,
 				nbSubSteps,
 				doFrame,
 				frameLen,

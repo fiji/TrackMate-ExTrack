@@ -7,13 +7,13 @@ public class TrackState
 
 	private final double localizationError;
 
-	private final double[] diffusionLengths;
+	private final double diffusionLength0;
 
-	private final double[] Fs;
+	private final double diffusionLength1;
 
-	private final double probabilityOfUnbindingContinuous;
+	private final double F0;
 
-	private final double probabilityOfBindingContinuous;
+	private final double F1;
 
 	private final int nbSubSteps;
 
@@ -23,34 +23,51 @@ public class TrackState
 
 	private final boolean doPred;
 
+	private final double probabilityOfUnbinding;
+
+	private final double probabilityOfBinding;
+
 	public TrackState(
 			final double localizationError,
-			final double[] diffusionLengths,
-			final double[] Fs,
+			final double diffusionLength0,
+			final double diffusionLength1,
+			final double F0,
 			final double probabilityOfUnbindingContinuous,
-			final double probabilityOfBindingContinuous,
 			final int nbSubSteps,
 			final boolean doFrame,
 			final int frameLen,
 			final boolean doPred )
 	{
 		this.localizationError = localizationError;
-		this.diffusionLengths = diffusionLengths;
-		this.Fs = Fs;
-		this.probabilityOfUnbindingContinuous = probabilityOfUnbindingContinuous;
-		this.probabilityOfBindingContinuous = probabilityOfBindingContinuous;
+		this.diffusionLength0 = diffusionLength0;
+		this.diffusionLength1 = diffusionLength1;
+		this.F0 = F0;
+		this.F1 = 1. - F0;
 		this.nbSubSteps = nbSubSteps;
 		this.doFrame = doFrame;
 		this.frameLen = frameLen;
 		this.doPred = doPred;
+
+		// Compute probabilityOfBindingContinuous.
+		final double probabilityOfBindingContinuous = F0 / F1 * probabilityOfUnbindingContinuous;
+
+		// Correct input probabilities from continuous to discrete.
+		this.probabilityOfUnbinding = 1. - Math.exp( -probabilityOfUnbindingContinuous / nbSubSteps );
+		this.probabilityOfBinding = 1. - Math.exp( -probabilityOfBindingContinuous / nbSubSteps );
+	}
+
+	public double sumLogProbabilities( final Matrix track )
+	{
+		final Matrix probabilities = eval( track );
+		double sumProba = 0.;
+		for ( int r = 0; r < probabilities.getRowDimension(); r++ )
+			sumProba += probabilities.get( r, 0 );
+
+		return Math.log( sumProba );
 	}
 
 	public Matrix eval( final Matrix track )
 	{
-
-		// Correct input probabilities from continuous to discrete.
-		final double probabilityOfUnbinding = 1. - Math.exp( -probabilityOfUnbindingContinuous / nbSubSteps );
-		final double probabilityOfBinding = 1. - Math.exp( -probabilityOfBindingContinuous / nbSubSteps );
 
 		/*
 		 * Initialize.
@@ -58,7 +75,7 @@ public class TrackState
 
 		final Matrix TrMat = initTransitionMatrix( probabilityOfUnbinding, probabilityOfBinding );
 		final Matrix currBs0 = createCurrBs( nbSubSteps + 1 );
-		final Matrix currDs0 = initDiffusionLengthMatrix( currBs0, diffusionLengths );
+		final Matrix currDs0 = initDiffusionLengthMatrix( currBs0, diffusionLength0, diffusionLength1 );
 		final Matrix LT0 = initLogTransitionProbaMatrix( currBs0, TrMat );
 
 		final Matrix currC0 = getDetection( track, track.getRowDimension() - 1 );
@@ -81,7 +98,7 @@ public class TrackState
 		{
 			currBs = createCurrBs( currentStep * nbSubSteps + 1 - removeStep );
 			currStates = createStateMatrix( currBs, nbSubSteps );
-			final Matrix currDs = initDiffusionLengthMatrix( currStates, diffusionLengths );
+			final Matrix currDs = initDiffusionLengthMatrix( currStates, diffusionLength0, diffusionLength1 );
 			final Matrix LT = initLogTransitionProbaMatrix( currStates, TrMat );
 
 			Km = iterate( Km, nbSubSteps );
@@ -150,9 +167,7 @@ public class TrackState
 						final Matrix LFPred = new Matrix( currStates.getRowDimension(), 1 );
 						for ( int r = 0; r < LFPred.getRowDimension(); r++ )
 						{
-							final double val = currStates.get( r, 0 ) == 0.
-									? Fs[ 0 ]
-									: Fs[ 1 ];
+							final double val = currStates.get( r, 0 ) == 0. ? F0 : F1;
 							LFPred.set( r, 0, Math.log( val ) );
 						}
 
@@ -260,9 +275,7 @@ public class TrackState
 		final Matrix LF = new Matrix( currStates.getRowDimension(), 1 );
 		for ( int r = 0; r < LF.getRowDimension(); r++ )
 		{
-			final double val = currStates.get( r, 0 ) == 0.
-					? Fs[ 0 ]
-					: Fs[ 1 ];
+			final double val = currStates.get( r, 0 ) == 0. ? F0 : F1;
 			LF.set( r, 0, Math.log( val ) );
 		}
 		/*
@@ -271,10 +284,9 @@ public class TrackState
 
 		LP = LP.plus( logIntegratedTerm ).plus( LF );
 
-		final Matrix P = new Matrix( LP.getRowDimension(), LP.getColumnDimension() );
+		final Matrix P = new Matrix( LP.getRowDimension(), 1 );
 		for ( int r = 0; r < LP.getRowDimension(); r++ )
-			for ( int c = 0; c < LP.getColumnDimension(); c++ )
-				P.set( r, c, Math.exp( LP.get( r, c ) ) );
+				P.set( r, 0, Math.exp( LP.get( r, 0 ) ) );
 
 		/*
 		 * Update predictions.
@@ -487,14 +499,14 @@ public class TrackState
 		return Km;
 	}
 
-	private static Matrix initDiffusionLengthMatrix( final Matrix currStates, final double[] diffusionLengths )
+	private static Matrix initDiffusionLengthMatrix( final Matrix currStates, final double diffusionLength0, final double diffusionLength1 )
 	{
 		final Matrix currDs = new Matrix( currStates.getRowDimension(), currStates.getColumnDimension() );
 		for ( int r = 0; r < currDs.getRowDimension(); r++ )
 		{
 			for ( int c = 0; c < currDs.getColumnDimension(); c++ )
 			{
-				final double val = currStates.get( r, c ) == 0. ? diffusionLengths[ 0 ] : diffusionLengths[ 1 ];
+				final double val = currStates.get( r, c ) == 0. ? diffusionLength0 : diffusionLength1;
 				currDs.set( r, c, val );
 			}
 		}
