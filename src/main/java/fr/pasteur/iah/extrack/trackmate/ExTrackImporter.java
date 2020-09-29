@@ -19,6 +19,9 @@ import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import fiji.plugin.trackmate.features.track.TrackAnalyzer;
+import fiji.plugin.trackmate.gui.GuiUtils;
+import fiji.plugin.trackmate.gui.TrackMateGUIController;
+import fiji.plugin.trackmate.gui.descriptors.ConfigureViewsDescriptor;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
@@ -230,23 +233,46 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 				Arrays.sort( trackRows );
 
 				final List< Spot > spots = new ArrayList<>( trackRows.length );
+				int t = 0;
 				for ( final int r : trackRows )
 				{
 					final double x = data[ X_COLUMN ][ r ];
 					final double y = data[ Y_COLUMN ][ r ];
 					final double z = 0.; // No Z?
-					final int frame = ( int ) data[ FRAME_COLUMN ][ r ] - 1;
-					final double probaStuck = data[ PROBA_STUCK_COLUMN ][ r ];
-					final double probaDiffusive = data[ PROBA_DIFFUSIVE_COLUMN ][ r ];
-
 					final Spot spot = new Spot( x, y, z, radius, quality );
+
+					/*
+					 * If we have a 3rd column, use it as time column, if not
+					 * take detections in order they are stored.
+					 */
+					final int frame;
+					if ( data.length > 2 )
+					{
+						frame = ( int ) data[ FRAME_COLUMN ][ r ] - 1;
+
+						/*
+						 * If we have a 4th column -> proba stuck.
+						 */
+
+						if ( data.length > 4 )
+						{
+							final double probaStuck = data[ PROBA_STUCK_COLUMN ][ r ];
+							spot.putFeature( ExTrackProbabilitiesFeature.P_STUCK, Double.valueOf( probaStuck ) );
+							if ( data.length > 5 )
+							{
+								final double probaDiffusive = data[ PROBA_DIFFUSIVE_COLUMN ][ r ];
+								spot.putFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE, Double.valueOf( probaDiffusive ) );
+							}
+						}
+					}
+					else
+					{
+						frame = t++;
+					}
 					spot.putFeature( Spot.POSITION_T, frameInterval * frame );
 					model.addSpotTo( spot, Integer.valueOf( frame ) );
 					spots.add( spot );
 
-					// Store feature values.
-					spot.putFeature( ExTrackProbabilitiesFeature.P_STUCK, Double.valueOf( probaStuck ) );
-					spot.putFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE, Double.valueOf( probaDiffusive ) );
 				}
 				spots.sort( Spot.frameComparator );
 				Spot source = spots.get( 0 );
@@ -256,17 +282,23 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 					final DefaultWeightedEdge edge = model.addEdge( source, target, 1. );
 
-					final double pStuckTarget = source.getFeature( ExTrackProbabilitiesFeature.P_STUCK );
-					model.getFeatureModel().putEdgeFeature(
-							edge,
-							ExTrackEdgeFeatures.P_STUCK,
-							Double.valueOf( pStuckTarget ) );
+					final Double pStuckTarget = source.getFeature( ExTrackProbabilitiesFeature.P_STUCK );
+					if ( pStuckTarget != null )
+					{
+						model.getFeatureModel().putEdgeFeature(
+								edge,
+								ExTrackEdgeFeatures.P_STUCK,
+								Double.valueOf( pStuckTarget ) );
+					}
 
-					final double pStuckDiffusive = source.getFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE );
-					model.getFeatureModel().putEdgeFeature(
-							edge,
-							ExTrackEdgeFeatures.P_DIFFUSIVE,
-							Double.valueOf( pStuckDiffusive ) );
+					final Double pStuckDiffusive = source.getFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE );
+					if ( pStuckDiffusive != null )
+					{
+						model.getFeatureModel().putEdgeFeature(
+								edge,
+								ExTrackEdgeFeatures.P_DIFFUSIVE,
+								Double.valueOf( pStuckDiffusive ) );
+					}
 
 					source = target;
 				}
@@ -291,7 +323,8 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 	public static void main( final String[] args )
 	{
 		final String imageFile = "samples/img.tif";
-		final String dataFile = "samples/tracks.npy";
+//		final String dataFile = "samples/tracks.npy";
+		final String dataFile = "samples/sim_tracks.npy";
 		final double radius = 0.25;
 		final double frameInterval = 0.1;
 
@@ -304,6 +337,15 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 		}
 
 		final TrackMate trackmate = importer.getResult();
+
+		/*
+		 * Launch controller.
+		 */
+
+		final TrackMateGUIController controller = new TrackMateGUIController( trackmate );
+		controller.setGUIStateString( ConfigureViewsDescriptor.KEY );
+		GuiUtils.positionWindow( controller.getGUI(), trackmate.getSettings().imp.getWindow() );
+
 		final Model model = trackmate.getModel();
 
 		ImageJ.main( args );
