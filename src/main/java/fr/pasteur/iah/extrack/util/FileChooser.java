@@ -136,7 +136,6 @@ public class FileChooser
 			 */
 			if ( selectedFile != null )
 			{
-				System.out.println( "selectedFile = " + selectedFile );
 				if ( isDirectoriesOnly )
 				{
 					fd.setDirectory( selectedFile );
