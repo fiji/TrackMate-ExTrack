@@ -144,14 +144,14 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 		for ( i = 0; i < dim; i++ )
 			q1[ i ] = x[ i ];
 
-		logger.log( "\n------------- enter function praxis -----------\n" );
-		logger.log( "... current parameter settings ..." );
-		logger.log( "... scaling ... " + scbd );
-		logger.log( "...   tolx  ... " + t );
-		logger.log( "...  tolfx  ... " + tolfx );
-		logger.log( "... maxstep ... " + h );
-		logger.log( "...   illc  ... " + illc );
-		logger.log( "... maxFun  ... " + maxFun );
+		logger.log( "\n------------- Optimization process started -----------\n" );
+		logger.log( "... Optimizer settings:\n" );
+		logger.log( "... scaling - " + scbd + '\n' );
+		logger.log( "...   tolx  - " + t + '\n' );
+		logger.log( "...  tolfx  - " + tolfx + '\n' );
+		logger.log( "... maxstep - " + h + '\n' );
+		logger.log( "...   illc  - " + illc + '\n' );
+		logger.log( "... maxFun  - " + maxFun + '\n' );
 
 		while ( true )
 		{
@@ -254,7 +254,7 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 				while ( gotoNext );
 
 				if ( k == 1 )
-					vecprint( "\n... New Direction ...", d );
+					vecprint( "\nNew direction - ", d );
 				/* minimize along conjugate directions */
 				for ( k2 = 0; k2 <= k - 1; k2++ )
 				{
@@ -313,6 +313,8 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 				if ( ldt < lds )
 					ldt = lds;
 
+				print();
+
 				if ( stopCondition( fx, x, tolfx, tolx, false ) )
 				{
 					kt++;
@@ -343,7 +345,7 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 					dn = d[ i ];
 			}
 
-			matprint( "\n... New Matrix of Directions ...", v );
+//			matprint( "\n... New Matrix of Directions ...", v );
 			for ( j = 0; j < dim; j++ )
 			{
 				s = d[ j ] / dn;
@@ -417,22 +419,22 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 			if ( dmin < small )
 				dmin = small;
 			illc = ( MachineAccuracy.SQRT_EPSILON * d[ 0 ] ) > dmin;
-			if (  scbd > 1.0  )
-				vecprint( "\n... Scale Factors ...", z );
+//			if (  scbd > 1.0  )
+//				vecprint( "\nScale Factors - ", z );
 
-			vecprint( "\n... Eigenvalues of A ...", d );
-			matprint( "\n... Eigenvectors of A ...", v );
+//			vecprint( "\nEigenvalues of A - ", d );
+//			matprint( "\nEigenvectors of A - ", v );
 
 			if ( ( maxFun > 0 ) && ( nl > maxFun ) )
 			{
-				logger.log( "\n... maximum number of function calls reached ..." );
+				logger.log( "\nMaximum number of function calls reached.\n" );
 				break;
 			}
 		}
 
-		vecprint( "\n... Final solution is ...", x );
-		logger.log( "\n... Function value reduced to " + fx + " ..." );
-		logger.log( "... after " + numFun + " function calls." );
+		vecprint( "\nFinal solution is ...", x );
+		logger.log( "\nFunction value reduced to " + fx  );
+		logger.log( " after " + numFun + " function calls.\n" );
 
 		// return (fx);
 	}
@@ -512,10 +514,12 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 	{
 		logger.log( s );
 		for ( int i = 0; i < x.length; i++ )
-			System.out.print( x[ i ] + "  " );
-		System.out.println();
+			logger.log( x[ i ] + "  " );
+
+		logger.log( "\n" );
 	}
 
+	@SuppressWarnings( "unused" )
 	private void matprint( final String s, final double[][] v )
 	{
 		logger.log( s );
@@ -993,9 +997,7 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 			if ( !converged )
 			{
 				e[ k ] = 0.0;
-				// System.out.println("\n+++ qr failed\n");
-				// System.exit(1);
-				throw new OptimizationError( "ConjugateDirectionSearch: +++ qr failed" );
+				throw new OptimizationError( "ConjugateDirectionSearch: QR failed" );
 			}
 
 			if ( z < 0.0 )
@@ -1005,5 +1007,13 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 					ab[ j ][ k ] = -ab[ j ][ k ];
 			}
 		}
+	}
+
+	private void print() /* print a line of traces */
+	{
+		logger.log( "Function value reduced to " + fx + '\n' );
+		logger.log( "After " + numFun + " function calls." + '\n' );
+		logger.log( "Including " + nl + " linear searches." + '\n' );
+		vecprint("Current values of x ...", x);
 	}
 }
