@@ -1,10 +1,13 @@
 package fr.pasteur.iah.extrack.util;
 
+import java.awt.Image;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.ImageIcon;
 
 import Jama.Matrix;
 import fiji.plugin.trackmate.Model;
@@ -34,4 +37,72 @@ public class ExTrackUtil
 		}
 		return Cs;
 	}
+
+	public static final Model toModel( final Map< Integer, Matrix > tracks )
+	{
+		final Model model = new Model();
+		model.setPhysicalUnits( "µm", "s" );
+
+		final double radius = 0.25; // µm.
+		final double quality = 1.;
+		final double frameInterval = 0.02; // s.
+
+		model.beginUpdate();
+		try
+		{
+			for ( final Integer trackID : tracks.keySet() )
+			{
+				// Offset the tracks because they all start at x=0, y=0.
+
+				Spot previous = null;
+				final Matrix track = tracks.get( trackID );
+				int frame = 0;
+				for ( int r = 0; r < track.getRowDimension(); r++ )
+				{
+					final double x = track.get( r, 0 );
+					final double y = track.get( r, 1 );
+					final double z = 0.;
+
+					final Spot spot = new Spot( x, y, z, radius, quality );
+					spot.putFeature( Spot.POSITION_T, frame * frameInterval );
+					model.addSpotTo( spot, frame );
+
+					if ( null != previous )
+						model.addEdge( previous, spot, 1. );
+
+					frame++;
+					previous = spot;
+				}
+			}
+		}
+		catch ( final Exception e )
+		{
+			e.printStackTrace();
+		}
+		finally
+		{
+			model.endUpdate();
+		}
+		return model;
+	}
+
+    public static final ImageIcon scaleImage(final ImageIcon icon, final int w, final int h)
+    {
+        int nw = icon.getIconWidth();
+        int nh = icon.getIconHeight();
+
+        if(icon.getIconWidth() > w)
+        {
+          nw = w;
+          nh = (nw * icon.getIconHeight()) / icon.getIconWidth();
+        }
+
+        if(nh > h)
+        {
+          nh = h;
+          nw = (icon.getIconWidth() * nh) / icon.getIconHeight();
+        }
+
+        return new ImageIcon(icon.getImage().getScaledInstance(nw, nh, Image.SCALE_DEFAULT));
+    }
 }
