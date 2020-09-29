@@ -23,30 +23,60 @@ public class ExTrackComputeAction extends AbstractTMAction
 
 	public static final String KEY = "COMPUTE_EXTRACK_PROBABILITIES";
 
-	public static final ImageIcon ICON = ExTrackImporterPanel.ICON;
+	public static final ImageIcon ICON = ExTrackUtil.scaleImage( ExTrackImporterPanel.ICON, 16, 16 );
 
 	public static final String NAME = "Compute ExTrack probabilities";
 
 	@Override
 	public void execute( final TrackMate trackmate )
 	{
-
-		// Default parameters for now.
 		final int frameLen = 8;
 		final int nbSubSteps = 1;
 		final boolean doFrame = true;
 		final boolean doPred = false;
 
-		// Starting values: higher than typical cases.
-		final double localizationError = 0.040056507;
-		final double diffusionLength0 = 0.002048;
-		final double diffusionLength1 = 0.62981;
-		final double F0 = 0.06869082094;
-		final double probabilityOfUnbinding = 0.1649915476;
-		final Map< Integer, Matrix > Cs = ExTrackUtil.toMatrix( trackmate.getModel());
+		/*
+		 * Optimize.
+		 */
+
+//		final double localizationError = 0.20056507;
+//		final double diffusionLength0 = 0.01048;
+//		final double diffusionLength1 = 0.62981;
+//		final double F0 = 0.06869082094;
+//		final double probabilityOfUnbinding = 0.849915476;
+
+		final double localizationError = 0.3;
+		final double diffusionLength0 = 0.08;
+		final double diffusionLength1 = 0.08;
+		final double F0 = 0.1;
+		final double probabilityOfUnbinding = 0.9;
 
 		execute(
-				Cs ,
+				trackmate,
+				localizationError,
+				diffusionLength0,
+				diffusionLength1,
+				F0,
+				probabilityOfUnbinding,
+				nbSubSteps,
+				doFrame,
+				frameLen,
+				doPred );
+	}
+
+	public void execute(
+			final TrackMate trackmate,
+			final double localizationError,
+			final double diffusionLength0,
+			final double diffusionLength1,
+			final double F0,
+			final double probabilityOfUnbinding,
+			final int nbSubSteps,
+			final boolean doFrame,
+			final int frameLen,
+			final boolean doPred )
+	{
+		execute( ExTrackUtil.toMatrix( trackmate.getModel() ),
 				localizationError,
 				diffusionLength0,
 				diffusionLength1,
@@ -91,12 +121,12 @@ public class ExTrackComputeAction extends AbstractTMAction
 				parameters,
 				tolfx, tolx );
 
-		logger.log( "\n\n-------------------------------------------------------------------------", Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f", "localizationError", parameters[ 0 ] ), Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f", "diffusionLength0", parameters[ 1 ] ), Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f", "diffusionLength1", parameters[ 2 ] ), Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f", "F0", parameters[ 3 ] ), Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f", "probabilityOfUnbinding", parameters[ 4 ] ), Logger.BLUE_COLOR );
+		logger.log( "\n\n-------------------------------------------------------------------------\n", Logger.BLUE_COLOR );
+		logger.log( String.format( "%30s: %10.5f\n", "localizationError", parameters[ 0 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%30s: %10.5f\n", "diffusionLength0", parameters[ 1 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%30s: %10.5f\n", "diffusionLength1", parameters[ 2 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%30s: %10.5f\n", "F0", parameters[ 3 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%30s: %10.5f\n", "probabilityOfUnbinding", parameters[ 4 ] ), Logger.BLUE_COLOR );
 	}
 
 	@Plugin( type = TrackMateActionFactory.class )
