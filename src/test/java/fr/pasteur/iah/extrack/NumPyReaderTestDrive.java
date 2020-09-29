@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import fr.pasteur.iah.extrack.numpy.NumPyReader;
 
-public class ImporterTestDrive
+public class NumPyReaderTestDrive
 {
 
 	public static void main( final String[] args ) throws IOException
