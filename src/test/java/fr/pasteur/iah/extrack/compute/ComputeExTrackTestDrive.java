@@ -5,7 +5,12 @@ import java.io.IOException;
 import java.util.Map;
 
 import Jama.Matrix;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.Settings;
+import fiji.plugin.trackmate.TrackMate;
 import fr.pasteur.iah.extrack.numpy.NumPyReader;
+import fr.pasteur.iah.extrack.util.ExTrackUtil;
 
 public class ComputeExTrackTestDrive
 {
@@ -65,16 +70,34 @@ public class ComputeExTrackTestDrive
 //				System.out.println( String.format( "%4d -> %12.8f", id, sumProba ) );
 //			}
 
-		new ExTrackComputeAction().execute(
-				tracks,
-				localizationError,
-				diffusionLength0,
-				diffusionLength1,
-				F0,
-				probabilityOfUnbinding,
-				nbSubSteps,
-				doFrame,
-				frameLen,
-				doPred );
+
+		final ExTrackComputeAction action = new ExTrackComputeAction();
+		action.setLogger( Logger.DEFAULT_LOGGER );
+		final Model model = ExTrackUtil.toModel( tracks );
+		final Settings settings = new Settings();
+		final TrackMate trackmate = new TrackMate( model , settings  );
+		action.execute( trackmate );
+//		,
+//				localizationError,
+//				diffusionLength0,
+//				diffusionLength1,
+//				F0,
+//				probabilityOfUnbinding,
+//				nbSubSteps,
+//				doFrame,
+//				frameLen,
+//				doPred );
+
+//		action.execute(
+//				tracks,
+//				localizationError,
+//				diffusionLength0,
+//				diffusionLength1,
+//				F0,
+//				probabilityOfUnbinding,
+//				nbSubSteps,
+//				doFrame,
+//				frameLen,
+//				doPred );
 	}
 }
