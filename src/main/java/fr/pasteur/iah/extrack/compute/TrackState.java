@@ -553,13 +553,17 @@ public class TrackState
 
 	private static Matrix initLogTransitionProbaMatrix( final Matrix currStates, final Matrix TrMat )
 	{
-		final Matrix LTtemp = new Matrix( currStates.getRowDimension(), 1 );
+		final Matrix LTtemp = new Matrix( currStates.getRowDimension(), currStates.getColumnDimension() - 1 );
 		for ( int r = 0; r < currStates.getRowDimension(); r++ )
 		{
-			final int val1 = ( int ) currStates.get( r, 0 );
-			final int val2 = ( int ) currStates.get( r, 1 );
-			final double val = TrMat.get( val1, val2 );
-			LTtemp.set( r, 0, val );
+			for ( int c = 0; c < currStates.getColumnDimension() - 1; c++ )
+			{
+				final int val1 = ( int ) currStates.get( r, c );
+				final int val2 = ( int ) currStates.get( r, c + 1 );
+
+				final double val = TrMat.get( val1, val2 );
+				LTtemp.set( r, c, val );
+			}
 		}
 
 		final Matrix LT = new Matrix( currStates.getRowDimension(), 1 );
