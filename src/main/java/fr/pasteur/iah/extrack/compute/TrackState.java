@@ -296,7 +296,7 @@ public class TrackState
 		{
 			for ( int state = 0; state < 2; state++ )
 			{
-				for ( int rowPred = 0; rowPred < frameLen; rowPred++ )
+				for ( int rowPred = 0; rowPred < Math.min( frameLen, pred.getRowDimension() ); rowPred++ )
 				{
 
 					// Conditional sum & global sum of P.
