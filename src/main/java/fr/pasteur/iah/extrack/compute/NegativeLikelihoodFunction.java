@@ -22,16 +22,20 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 
 	private final double[] upperBound;
 
+	private boolean doPred;
+
 	public NegativeLikelihoodFunction(
 			final Map< Integer, Matrix > Cs,
 			final int nbSubSteps,
 			final boolean doFrame,
-			final int frameLen )
+			final int frameLen,
+			final boolean doPred )
 	{
 		this.Cs = Cs;
 		this.nbSubSteps = nbSubSteps;
 		this.doFrame = doFrame;
 		this.frameLen = frameLen;
+		this.doPred = doPred;
 		this.lowerBound = new double[ N_ARGS ];
 		this.upperBound = new double[ N_ARGS ];
 
@@ -74,7 +78,7 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 	@Override
 	public double evaluate( final double[] argument )
 	{
-		return evalFun( argument, Cs, nbSubSteps, doFrame, frameLen );
+		return evalFun( argument, Cs, nbSubSteps, doFrame, frameLen, doPred );
 	}
 
 	@Override
@@ -100,7 +104,8 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 			final Map< Integer, Matrix > tracks,
 			final int nbSubSteps,
 			final boolean doFrame,
-			final int frameLen )
+			final int frameLen,
+			final boolean doPred )
 	{
 		final double localizationError = params[ 0 ];
 		final double diffusionLength0 = params[ 1 ];
@@ -108,9 +113,7 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 		final double F0 = params[ 3 ];
 		final double probabilityOfUnbindingContinuous = params[ 4 ];
 
-		final boolean doPred = false;
-
-		double sumLogProbas = 0.;
+		double sumLogProbas = 0.; // all tracks
 		final TrackState state = new TrackState(
 				localizationError,
 				diffusionLength0,
@@ -126,7 +129,7 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 			final Matrix track = tracks.get( trackID );
 			final Matrix probabilities = state.eval( track );
 
-			double sumProba = 0.;
+			double sumProba = 0.; // one track
 			for ( int r = 0; r < probabilities.getRowDimension(); r++ )
 				sumProba += probabilities.get( r, 0 );
 

@@ -30,14 +30,22 @@ public class ExTrackComputeAction extends AbstractTMAction
 	@Override
 	public void execute( final TrackMate trackmate )
 	{
-		final int frameLen = 8;
+//		final int frameLen = 4;
+//		final int nbSubSteps = 2;
+		final int frameLen = 5;
 		final int nbSubSteps = 1;
 		final boolean doFrame = true;
-		final boolean doPred = false;
+		final boolean doPred = true;
 
 		/*
 		 * Optimize.
 		 */
+
+//		final double localizationError = 1.;
+//		final double diffusionLength0 = 1e-9;
+//		final double diffusionLength1 = Math.sqrt( 2. );
+//		final double F0 = 2. / 3.;
+//		final double probabilityOfUnbinding = 0.1;
 
 //		final double localizationError = 0.20056507;
 //		final double diffusionLength0 = 0.01048;
@@ -115,7 +123,7 @@ public class ExTrackComputeAction extends AbstractTMAction
 		final double tolfx = 1e-6;
 		final double tolx = 1e-6;
 
-		final NegativeLikelihoodFunction fun = new NegativeLikelihoodFunction( Cs, nbSubSteps, doFrame, frameLen );
+		final NegativeLikelihoodFunction fun = new NegativeLikelihoodFunction( Cs, nbSubSteps, doFrame, frameLen, doPred );
 		optimizer.optimize(
 				fun,
 				parameters,
