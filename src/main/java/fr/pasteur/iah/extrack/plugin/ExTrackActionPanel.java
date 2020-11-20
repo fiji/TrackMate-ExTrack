@@ -97,17 +97,17 @@ public class ExTrackActionPanel extends JPanel
 
 		btnSave = new JButton( "Save" );
 		panelButtons.add( btnSave );
-		btnSave.setFont( lblParams.getFont().deriveFont( lblParams.getFont().getSize() - 2f ) );
+		btnSave.setFont( btnSave.getFont().deriveFont( btnSave.getFont().getSize() - 2f ) );
 
 		btnLoad = new JButton( "Load" );
 		panelButtons.add( btnLoad );
-		btnLoad.setFont( lblParams.getFont().deriveFont( lblParams.getFont().getSize() - 2f ) );
+		btnLoad.setFont( btnLoad.getFont().deriveFont( btnLoad.getFont().getSize() - 2f ) );
 
 		panelButtons.add( Box.createHorizontalGlue() );
 
 		btnCompute = new JButton( "Compute" );
 		panelButtons.add( btnCompute );
-		btnCompute.setFont( lblParams.getFont().deriveFont( lblParams.getFont().getSize() - 2f ) );
+		btnCompute.setFont( btnCompute.getFont().deriveFont( btnCompute.getFont().getSize() - 2f ) );
 
 		final JLabel lblTitle = new JLabel( ExTrackGuiUtil.getIcon(), JLabel.CENTER );
 		lblTitle.setFont( getFont().deriveFont( 42 ) );
@@ -289,6 +289,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblLocError2, gbc_lblLocError2 );
 
 		ftfEstimLocError = new JFormattedTextField( formatter );
+		ftfEstimLocError.setEnabled( false );
 		ftfEstimLocError.setFont( ftfEstimLocError.getFont().deriveFont( ftfEstimLocError.getFont().getSize() - 2f ) );
 		ftfEstimLocError.setBackground( new Color( 0, 0, 0, 0 ) );
 		ftfEstimLocError.setBorder( null );
@@ -322,6 +323,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblDiffLength02, gbc_lblDiffLength02 );
 
 		ftfEstimDiffLength0 = new JFormattedTextField( formatter );
+		ftfEstimDiffLength0.setEnabled( false );
 		ftfEstimDiffLength0.setFont( ftfEstimDiffLength0.getFont().deriveFont( ftfEstimDiffLength0.getFont().getSize() - 2f ) );
 		ftfEstimDiffLength0.setBackground( new Color( 0, 0, 0, 0 ) );
 		ftfEstimDiffLength0.setBorder( null );
@@ -355,6 +357,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblDiffLength12, gbc_lblDiffLength12 );
 
 		ftfEstimDiffLength1 = new JFormattedTextField( formatter );
+		ftfEstimDiffLength1.setEnabled( false );
 		ftfEstimDiffLength1.setFont( ftfEstimDiffLength1.getFont().deriveFont( ftfEstimDiffLength1.getFont().getSize() - 2f ) );
 		ftfEstimDiffLength1.setBackground( new Color( 0, 0, 0, 0 ) );
 		ftfEstimDiffLength1.setBorder( null );
@@ -388,6 +391,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblMobileFraction2, gbc_lblMobileFraction2 );
 
 		ftfEstimMobileFraction = new JFormattedTextField( formatter );
+		ftfEstimMobileFraction.setEnabled( false );
 		ftfEstimMobileFraction.setFont( ftfEstimMobileFraction.getFont().deriveFont( ftfEstimMobileFraction.getFont().getSize() - 2f ) );
 		ftfEstimMobileFraction.setBackground( new Color( 0, 0, 0, 0 ) );
 		ftfEstimMobileFraction.setBorder( null );
@@ -412,6 +416,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblPU2, gbc_lblPU2 );
 
 		ftfEstimProbUnbinding = new JFormattedTextField( formatter );
+		ftfEstimProbUnbinding.setEnabled( false );
 		ftfEstimProbUnbinding.setFont( ftfEstimProbUnbinding.getFont().deriveFont( ftfEstimProbUnbinding.getFont().getSize() - 2f ) );
 		ftfEstimProbUnbinding.setBackground( new Color( 0, 0, 0, 0 ) );
 		ftfEstimProbUnbinding.setBorder( null );
