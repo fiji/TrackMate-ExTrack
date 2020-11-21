@@ -26,6 +26,16 @@ public class ExTrackParameters
 		this.probabilityOfUnbinding = probabilityOfUnbinding;
 	}
 
+	public double[] toArray()
+	{
+		return new double[] {
+				localizationError,
+				diffusionLength0,
+				diffusionLength1,
+				F0,
+				probabilityOfUnbinding };
+	}
+
 	public static final Builder create()
 	{
 		return new Builder();
@@ -84,5 +94,16 @@ public class ExTrackParameters
 					F0,
 					probabilityOfUnbinding );
 		}
+	}
+
+	public static ExTrackParameters fromArray( final double[] array )
+	{
+		return ExTrackParameters.create()
+				.localizationError( array[ 0 ] )
+				.diffusionLength0( array[ 1 ] )
+				.diffusionLength1( array[ 2 ] )
+				.F0( array[ 3 ] )
+				.probabilityOfUnbinding( array[ 4 ] )
+				.build();
 	}
 }
