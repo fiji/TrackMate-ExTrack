@@ -15,6 +15,10 @@
 
 package fr.pasteur.iah.extrack.compute;
 
+import java.util.function.Consumer;
+
+import org.scijava.Cancelable;
+
 import fiji.plugin.trackmate.Logger;
 import pal.math.MachineAccuracy;
 import pal.math.MersenneTwisterFast;
@@ -26,10 +30,14 @@ import pal.math.MultivariateMinimum;
  * without using derivatives (Brent's modification of a conjugate direction
  * search method proposed by Powell)
  *
+ * Modified by JYT to be cancelable and have a logger that reports progress.
+ *
  * @author Korbinian Strimmer
  */
-public class ConjugateDirectionSearch extends MultivariateMinimum
+public class ConjugateDirectionSearch extends MultivariateMinimum implements Cancelable
 {
+
+	private final Consumer< double[] > valueWatcher;
 
 	// Just put this in here so we can have a public class which
 	// doesn't need to be in its own file:
@@ -50,9 +58,10 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 	/**
 	 * constructor
 	 */
-	public ConjugateDirectionSearch(final Logger logger)
+	public ConjugateDirectionSearch( final Logger logger, final Consumer< double[] > valueWatcher )
 	{
 		this.logger = logger;
+		this.valueWatcher = valueWatcher;
 		// random number generator
 		this.rng = new MersenneTwisterFast();
 	}
@@ -92,9 +101,17 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 
 	// implementation of abstract method
 
+	public double[] getCurrentValue()
+	{
+		return x;
+	}
+
 	@Override
 	public void optimize( final MultivariateFunction f, final double[] xvector, final double tolfx, final double tolx )
 	{
+		cancelReason = null;
+		isCanceled = false;
+
 		t = tolx;
 
 		fun = f;
@@ -155,6 +172,9 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 
 		while ( true )
 		{
+			if ( isCanceled )
+				return;
+
 			sf = d[ 0 ];
 			s = d[ 0 ] = 0.0;
 
@@ -314,6 +334,10 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 					ldt = lds;
 
 				print();
+				if ( valueWatcher != null )
+					valueWatcher.accept( x );
+				if ( isCanceled )
+					return;
 
 				if ( stopCondition( fx, x, tolfx, tolx, false ) )
 				{
@@ -476,7 +500,7 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 	private double h, t;
 
 	// Random number generator
-	private MersenneTwisterFast rng;
+	private final MersenneTwisterFast rng;
 
 	// sort d and v in descending order
 	private void sort()
@@ -570,6 +594,10 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 	private double min1;
 
 	private double min2;
+
+	private boolean isCanceled;
+
+	private String cancelReason;
 
 	private void min( final int j, final int nits, double f1, final boolean fk )
 	{
@@ -1015,5 +1043,25 @@ public class ConjugateDirectionSearch extends MultivariateMinimum
 		logger.log( "After " + numFun + " function calls." + '\n' );
 		logger.log( "Including " + nl + " linear searches." + '\n' );
 		vecprint("Current values of x ...", x);
+	}
+
+	@Override
+	public boolean isCanceled()
+	{
+		return isCanceled;
+	}
+
+	@Override
+	public void cancel( final String reason )
+	{
+		this.cancelReason = reason;
+		isCanceled = true;
+
+	}
+
+	@Override
+	public String getCancelReason()
+	{
+		return cancelReason;
 	}
 }
