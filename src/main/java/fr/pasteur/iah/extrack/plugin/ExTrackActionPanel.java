@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
@@ -454,8 +456,26 @@ public class ExTrackActionPanel extends JPanel
 		panelEstimationButtons.add( btnEstimStart );
 
 		/*
-		 * Set stuff.
+		 * Set listeners.
 		 */
+
+		final ExTrackParameters params = ExTrackParameters.create().build();
+		setManualParameters( params );
+
+		final PropertyChangeListener l = new PropertyChangeListener()
+		{
+
+			@Override
+			public void propertyChange( final PropertyChangeEvent evt )
+			{
+				setEstimationParameters( getManualParameters() );
+			}
+		};
+		ftfLocError.addPropertyChangeListener( l );
+		ftfDiffLength0.addPropertyChangeListener( l );
+		ftfDiffLength1.addPropertyChangeListener( l );
+		ftfMobileFraction.addPropertyChangeListener( l );
+		ftfProbUnbinding.addPropertyChangeListener( l );
 
 		setEstimationParameters( ExTrackParameters.ESTIMATION_START_POINT );
 	}
