@@ -92,6 +92,8 @@ public class ExTrackActionController
 				final ExTrackParameterOptimizer optimizer = new ExTrackParameterOptimizer( startPoint, tracks, logger, valueWatcher );
 				this.cancelable = optimizer;
 				optimizer.run();
+				final ExTrackParameters optimum = optimizer.getParameters();
+				gui.setManualParameters( optimum );
 			}
 			finally
 			{

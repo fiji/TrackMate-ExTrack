@@ -79,4 +79,9 @@ public class ExTrackParameterOptimizer implements Runnable, Cancelable
 	{
 		return optimizer.getCancelReason();
 	}
+
+	public ExTrackParameters getParameters()
+	{
+		return ExTrackParameters.fromArray( optimizer.getCurrentValue() );
+	}
 }
