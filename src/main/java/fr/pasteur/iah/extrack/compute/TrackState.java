@@ -58,7 +58,8 @@ public class TrackState
 
 	public double sumLogProbabilities( final Matrix track )
 	{
-		final Matrix probabilities = eval( track );
+		final Matrix[] vals = eval( track );
+		final Matrix probabilities = vals[ 0 ];
 		double sumProba = 0.;
 		for ( int r = 0; r < probabilities.getRowDimension(); r++ )
 			sumProba += probabilities.get( r, 0 );
@@ -66,7 +67,18 @@ public class TrackState
 		return Math.log( sumProba );
 	}
 
-	public Matrix eval( final Matrix track )
+	/**
+	 * Returns:
+	 * <ol start="0">
+	 * <li>the matrix of probabilities P
+	 * <li>the matrix of state prediction pred
+	 * </ol>
+	 * 
+	 * @param track
+	 *            the track to evaluate.
+	 * @return a new array of matrices.
+	 */
+	public Matrix[] eval( final Matrix track )
 	{
 
 		/*
@@ -316,7 +328,7 @@ public class TrackState
 				}
 			}
 		}
-		return P;
+		return new Matrix[] { P, pred };
 	}
 
 	private static Matrix[] fuseTracks( final Matrix Km, final Matrix Ks, final Matrix LP )

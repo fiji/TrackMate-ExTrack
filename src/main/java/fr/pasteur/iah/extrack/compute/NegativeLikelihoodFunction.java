@@ -22,7 +22,7 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 
 	private final double[] upperBound;
 
-	private boolean doPred;
+	private final boolean doPred;
 
 	public NegativeLikelihoodFunction(
 			final Map< Integer, Matrix > Cs,
@@ -127,7 +127,8 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 		for ( final Integer trackID : tracks.keySet() )
 		{
 			final Matrix track = tracks.get( trackID );
-			final Matrix probabilities = state.eval( track );
+			final Matrix[] vals = state.eval( track );
+			final Matrix probabilities = vals[ 0 ];
 
 			double sumProba = 0.; // one track
 			for ( int r = 0; r < probabilities.getRowDimension(); r++ )
