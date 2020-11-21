@@ -23,6 +23,7 @@ import com.google.gson.JsonSyntaxException;
 import Jama.Matrix;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.TrackMate;
+import fr.pasteur.iah.extrack.compute.ExTrackDoPredictions;
 import fr.pasteur.iah.extrack.compute.ExTrackParameterOptimizer;
 import fr.pasteur.iah.extrack.compute.ExTrackParameters;
 import fr.pasteur.iah.extrack.util.ExTrackUtil;
@@ -58,6 +59,30 @@ public class ExTrackActionController
 		gui.btnLoad.addActionListener( e -> load() );
 		gui.btnEstimStart.addActionListener( e -> startEstimation() );
 		gui.btnEstimCancel.addActionListener( e -> cancelEstimation() );
+		gui.btnCompute.addActionListener( e -> computeProbabilities() );
+	}
+
+	private void computeProbabilities()
+	{
+		final EverythingDisablerAndReenabler reenabler = new EverythingDisablerAndReenabler(
+				SwingUtilities.getWindowAncestor( gui ),
+				new Class[] { JLabel.class } );
+		reenabler.disable();
+		new Thread( () -> {
+			try
+			{
+				final ExTrackParameters parameters = gui.getManualParameters();
+				final ExTrackDoPredictions predictions = new ExTrackDoPredictions( parameters, trackmate, logger );
+				predictions.run();
+			}
+			finally
+			{
+				reenabler.reenable();
+				gui.btnEstimCancel.setEnabled( false );
+				gui.btnEstimStart.setEnabled( true );
+				gui.log( "States predictions computed." );
+			}
+		} ).start();
 	}
 
 	private void cancelEstimation()
