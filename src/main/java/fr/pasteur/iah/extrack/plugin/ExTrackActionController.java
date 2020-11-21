@@ -1,16 +1,18 @@
 package fr.pasteur.iah.extrack.plugin;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -18,7 +20,12 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
+import Jama.Matrix;
+import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.TrackMate;
+import fr.pasteur.iah.extrack.compute.ExTrackParameterOptimizer;
 import fr.pasteur.iah.extrack.compute.ExTrackParameters;
+import fr.pasteur.iah.extrack.util.ExTrackUtil;
 import fr.pasteur.iah.extrack.util.FileChooser;
 import fr.pasteur.iah.extrack.util.FileChooser.DialogType;
 
@@ -33,14 +40,70 @@ public class ExTrackActionController
 
 	private static String selectedFile;
 
-	public ExTrackActionController()
+	private final TrackMate trackmate;
+
+	private final Logger logger;
+
+	private ExTrackParameterOptimizer cancelable;
+
+	public ExTrackActionController( final TrackMate trackmate, final Logger logger )
 	{
+		this.trackmate = trackmate;
+		this.logger = logger;
 		this.gui = new ExTrackActionPanel();
-		final ExTrackParameters params = ExTrackParameters.create().build();
-		gui.setManualParameters( params );
+		gui.btnEstimCancel.setEnabled( false );
+		gui.btnEstimStart.setEnabled( true );
 
 		gui.btnSave.addActionListener( e -> save() );
 		gui.btnLoad.addActionListener( e -> load() );
+		gui.btnEstimStart.addActionListener( e -> startEstimation() );
+		gui.btnEstimCancel.addActionListener( e -> cancelEstimation() );
+	}
+
+	private void cancelEstimation()
+	{
+		if ( cancelable != null )
+		{
+			gui.btnEstimCancel.setEnabled( false );
+			gui.log( "Canceling..." );
+			logger.log( "User canceled." );
+			cancelable.cancel( "User canceled" );
+		}
+	}
+
+	private void startEstimation()
+	{
+		final EverythingDisablerAndReenabler reenabler = new EverythingDisablerAndReenabler(
+				SwingUtilities.getWindowAncestor( gui ),
+				new Class[] { JLabel.class } );
+		reenabler.disable();
+
+		gui.btnEstimCancel.setEnabled( true );
+		gui.btnEstimStart.setEnabled( false );
+		gui.log( "Estimation started." );
+		new Thread( () -> {
+			try
+			{
+				final Consumer< double[] > valueWatcher = array -> {
+					SwingUtilities.invokeLater( () -> gui.setEstimationParameters( ExTrackParameters.fromArray( array ) ) );
+				};
+				final Map< Integer, Matrix > tracks = ExTrackUtil.toMatrix( trackmate.getModel() );
+				final ExTrackParameters startPoint = gui.getManualParameters();
+				final ExTrackParameterOptimizer optimizer = new ExTrackParameterOptimizer( startPoint, tracks, logger, valueWatcher );
+				this.cancelable = optimizer;
+				optimizer.run();
+			}
+			finally
+			{
+				reenabler.reenable();
+				gui.btnEstimCancel.setEnabled( false );
+				gui.btnEstimStart.setEnabled( true );
+				if ( cancelable.isCanceled() )
+					gui.log( "User canceled." );
+				else
+					gui.log( "Estimation completed." );
+			}
+		} ).start();
 	}
 
 	private void load()
@@ -140,6 +203,15 @@ public class ExTrackActionController
 			{
 
 				final JFrame frame = new JFrame();
+				frame.addWindowListener( new WindowAdapter()
+				{
+					@Override
+					public void windowClosing( final WindowEvent e )
+					{
+						cancelEstimation();
+					}
+				} );
+				frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
 				frame.getContentPane().add( gui );
 				frame.pack();
 				frame.setIconImage( ExTrackGuiUtil.ICON.getImage() );
@@ -147,15 +219,5 @@ public class ExTrackActionController
 				frame.setVisible( true );
 			}
 		} );
-	}
-
-	/*
-	 * Demo.
-	 */
-
-	public static void main( final String[] args ) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException
-	{
-		UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
-		new ExTrackActionController().show();
 	}
 }
