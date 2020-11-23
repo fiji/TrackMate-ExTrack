@@ -2,12 +2,18 @@ package fr.pasteur.iah.extrack.compute;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import org.jgrapht.graph.DefaultWeightedEdge;
 
 import Jama.Matrix;
+import fiji.plugin.trackmate.FeatureModel;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
+import fiji.plugin.trackmate.TrackModel;
+import fr.pasteur.iah.extrack.trackmate.ExTrackEdgeFeatures;
 import fr.pasteur.iah.extrack.trackmate.ExTrackProbabilitiesFeature;
 
 public class ExTrackDoPredictions implements Runnable
@@ -51,11 +57,14 @@ public class ExTrackDoPredictions implements Runnable
 				doPred );
 
 		final Model model = trackmate.getModel();
-		final int nTracks = model.getTrackModel().nTracks( true );
+		final TrackModel trackModel = model.getTrackModel();
+		final FeatureModel featureModel = model.getFeatureModel();
+		
+		final int nTracks = trackModel.nTracks( true );
 		int index = 0;
-		for ( final Integer trackID : model.getTrackModel().trackIDs( true ) )
+		for ( final Integer trackID : trackModel.trackIDs( true ) )
 		{
-			final List< Spot > track = new ArrayList<>( model.getTrackModel().trackSpots( trackID ) );
+			final List< Spot > track = new ArrayList<>( trackModel.trackSpots( trackID ) );
 			track.sort( Spot.frameComparator );
 
 			final Matrix C = new Matrix( track.size(), 2 );
@@ -71,9 +80,22 @@ public class ExTrackDoPredictions implements Runnable
 
 			for ( int r = 0; r < track.size(); r++ )
 			{
+				final double stuckProba = predictions.get( r, 0 );
+				final double diffusiveProba = predictions.get( r, 1 );
+
 				final Spot spot = track.get( r );
-				spot.putFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE, predictions.get( r, 0 ) );
-				spot.putFeature( ExTrackProbabilitiesFeature.P_STUCK, predictions.get( r, 1 ) );
+				spot.putFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE, diffusiveProba );
+				spot.putFeature( ExTrackProbabilitiesFeature.P_STUCK, stuckProba );
+
+				final Set< DefaultWeightedEdge > edges = trackModel.edgesOf( spot );
+				for ( final DefaultWeightedEdge edge : edges )
+				{
+					if ( trackModel.getEdgeTarget( edge ).equals( spot ) )
+					{
+						featureModel.putEdgeFeature( edge, ExTrackEdgeFeatures.P_DIFFUSIVE, diffusiveProba );
+						featureModel.putEdgeFeature( edge, ExTrackEdgeFeatures.P_STUCK, stuckProba );
+					}
+				}
 			}
 			logger.setProgress( ( double ) ( ++index ) / nTracks );
 		}
