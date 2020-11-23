@@ -9,9 +9,6 @@ maven:
   when: always
   script:
    - mvn clean install 
-   - VERSION=$( mvn -Dexec.executable='echo' -Dexec.args='${project.version}' --non-recursive exec:exec -q )
-   - ARTIFACTID=$( mvn -Dexec.executable='echo' -Dexec.args='${project.artifactId}' --non-recursive exec:exec -q )
   artifacts:
-    name: "$ARTIFACTID$VERSION" 
     paths:
       - target/*.jar
