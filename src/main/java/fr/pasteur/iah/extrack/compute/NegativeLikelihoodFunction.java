@@ -21,12 +21,20 @@
  */
 package fr.pasteur.iah.extrack.compute;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import Jama.Matrix;
+import net.imglib2.algorithm.MultiThreaded;
 import pal.math.MultivariateFunction;
 
-public class NegativeLikelihoodFunction implements MultivariateFunction
+public class NegativeLikelihoodFunction implements MultivariateFunction, MultiThreaded
 {
 
 	private static final int N_ARGS = 5;
@@ -45,6 +53,10 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 
 	private final boolean doPred;
 
+	private int numThreads;
+
+	private ExecutorService executorService;
+
 	public NegativeLikelihoodFunction(
 			final Map< Integer, Matrix > Cs,
 			final int nbSubSteps,
@@ -59,6 +71,7 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 		this.doPred = doPred;
 		this.lowerBound = new double[ N_ARGS ];
 		this.upperBound = new double[ N_ARGS ];
+		setNumThreads();
 
 		/*
 		 * 0. localizationError
@@ -99,7 +112,7 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 	@Override
 	public double evaluate( final double[] argument )
 	{
-		return evalFun( argument, Cs, nbSubSteps, doFrame, frameLen, doPred );
+		return evalFun( argument, Cs, nbSubSteps, doFrame, frameLen, doPred, executorService );
 	}
 
 	@Override
@@ -126,7 +139,8 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 			final int nbSubSteps,
 			final boolean doFrame,
 			final int frameLen,
-			final boolean doPred )
+			final boolean doPred,
+			final ExecutorService executorService )
 	{
 		final double localizationError = params[ 0 ];
 		final double diffusionLength0 = params[ 1 ];
@@ -145,19 +159,63 @@ public class NegativeLikelihoodFunction implements MultivariateFunction
 				doFrame,
 				frameLen,
 				doPred );
+		
+		
+		final List< Future< Double > > futures = new ArrayList<>( tracks.size() );
 		for ( final Integer trackID : tracks.keySet() )
 		{
-			final Matrix track = tracks.get( trackID );
-			final Matrix[] vals = state.eval( track );
-			final Matrix probabilities = vals[ 0 ];
+			final Future< Double > future = executorService.submit( new Callable< Double >()
+			{
 
-			double sumProba = 0.; // one track
-			for ( int r = 0; r < probabilities.getRowDimension(); r++ )
-				sumProba += probabilities.get( r, 0 );
+				@Override
+				public Double call() throws Exception
+				{
+					final Matrix track = tracks.get( trackID );
+					final Matrix[] vals = state.eval( track );
+					final Matrix probabilities = vals[ 0 ];
 
-			sumLogProbas += Math.log( sumProba );
+					double sumProba = 0.; // one track
+					for ( int r = 0; r < probabilities.getRowDimension(); r++ )
+						sumProba += probabilities.get( r, 0 );
+
+					return Double.valueOf( sumProba );
+				}
+			} );
+			futures.add( future );
 		}
 
+		for ( final Future< Double > future : futures )
+		{
+			Double val;
+			try
+			{
+				val = future.get();
+				sumLogProbas += Math.log( val.doubleValue() );
+			}
+			catch ( InterruptedException | ExecutionException e )
+			{
+				e.printStackTrace();
+			}
+		}
 		return -sumLogProbas;
+	}
+
+	@Override
+	public void setNumThreads()
+	{
+		setNumThreads( Runtime.getRuntime().availableProcessors() / 2 );
+	}
+
+	@Override
+	public void setNumThreads( final int numThreads )
+	{
+		this.numThreads = Math.max( 1, numThreads );
+		this.executorService = Executors.newFixedThreadPool( numThreads );
+	}
+
+	@Override
+	public int getNumThreads()
+	{
+		return numThreads;
 	}
 }

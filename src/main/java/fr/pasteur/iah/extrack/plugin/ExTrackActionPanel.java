@@ -60,15 +60,15 @@ public class ExTrackActionPanel extends JPanel
 
 	final JButton btnSave;
 
-	private final JFormattedTextField ftfEstimProbUnbinding;
+	private final JLabel lblEstimProbUnbinding;
 
-	private final JFormattedTextField ftfEstimMobileFraction;
+	private final JLabel lblEstimMobileFraction;
 
-	private final JFormattedTextField ftfEstimDiffLength1;
+	private final JLabel lblEstimDiffLength1;
 
-	private final JFormattedTextField ftfEstimDiffLength0;
+	private final JLabel lblEstimDiffLength0;
 
-	private final JFormattedTextField ftfEstimLocError;
+	private final JLabel lblEstimLocError;
 
 	private final JFormattedTextField ftfProbUnbinding;
 
@@ -311,21 +311,17 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblLocError2.gridy = 0;
 		panelMLEstimation.add( lblLocError2, gbc_lblLocError2 );
 
-		ftfEstimLocError = new JFormattedTextField( formatter );
-		ftfEstimLocError.setEnabled( false );
-		ftfEstimLocError.setFont( ftfEstimLocError.getFont().deriveFont( ftfEstimLocError.getFont().getSize() - 2f ) );
-		ftfEstimLocError.setBackground( new Color( 0, 0, 0, 0 ) );
-		ftfEstimLocError.setBorder( null );
-		ftfEstimLocError.setEditable( false );
-		ftfEstimLocError.setHorizontalAlignment( SwingConstants.TRAILING );
-		ftfEstimLocError.setMinimumSize( new Dimension( 100, 26 ) );
-		ftfEstimLocError.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimLocError = new JLabel();
+		lblEstimLocError.setHorizontalAlignment( SwingConstants.TRAILING );
+		lblEstimLocError.setMinimumSize( new Dimension( 100, 26 ) );
+		lblEstimLocError.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimLocError.setFont( ftfLocError.getFont() );
 		final GridBagConstraints gbc_ftfEstimLocError = new GridBagConstraints();
 		gbc_ftfEstimLocError.fill = GridBagConstraints.HORIZONTAL;
 		gbc_ftfEstimLocError.insets = new Insets( 0, 0, 5, 5 );
 		gbc_ftfEstimLocError.gridx = 1;
 		gbc_ftfEstimLocError.gridy = 0;
-		panelMLEstimation.add( ftfEstimLocError, gbc_ftfEstimLocError );
+		panelMLEstimation.add( lblEstimLocError, gbc_ftfEstimLocError );
 
 		final JLabel lblUnit12 = new JLabel( "µm" );
 		lblUnit12.setFont( lblUnit12.getFont().deriveFont( lblUnit12.getFont().getSize() - 2f ) );
@@ -345,21 +341,17 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblDiffLength02.gridy = 1;
 		panelMLEstimation.add( lblDiffLength02, gbc_lblDiffLength02 );
 
-		ftfEstimDiffLength0 = new JFormattedTextField( formatter );
-		ftfEstimDiffLength0.setEnabled( false );
-		ftfEstimDiffLength0.setFont( ftfEstimDiffLength0.getFont().deriveFont( ftfEstimDiffLength0.getFont().getSize() - 2f ) );
-		ftfEstimDiffLength0.setBackground( new Color( 0, 0, 0, 0 ) );
-		ftfEstimDiffLength0.setBorder( null );
-		ftfEstimDiffLength0.setEditable( false );
-		ftfEstimDiffLength0.setHorizontalAlignment( SwingConstants.TRAILING );
-		ftfEstimDiffLength0.setMinimumSize( new Dimension( 100, 26 ) );
-		ftfEstimDiffLength0.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimDiffLength0 = new JLabel();
+		lblEstimDiffLength0.setHorizontalAlignment( SwingConstants.TRAILING );
+		lblEstimDiffLength0.setMinimumSize( new Dimension( 100, 26 ) );
+		lblEstimDiffLength0.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimDiffLength0.setFont( ftfDiffLength0.getFont() );
 		final GridBagConstraints gbc_ftfEstimDiffLength0 = new GridBagConstraints();
 		gbc_ftfEstimDiffLength0.fill = GridBagConstraints.HORIZONTAL;
 		gbc_ftfEstimDiffLength0.insets = new Insets( 0, 0, 5, 5 );
 		gbc_ftfEstimDiffLength0.gridx = 1;
 		gbc_ftfEstimDiffLength0.gridy = 1;
-		panelMLEstimation.add( ftfEstimDiffLength0, gbc_ftfEstimDiffLength0 );
+		panelMLEstimation.add( lblEstimDiffLength0, gbc_ftfEstimDiffLength0 );
 
 		final JLabel lblUnit22 = new JLabel( "µm" );
 		lblUnit22.setFont( lblUnit22.getFont().deriveFont( lblUnit22.getFont().getSize() - 2f ) );
@@ -379,21 +371,17 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblDiffLength12.gridy = 2;
 		panelMLEstimation.add( lblDiffLength12, gbc_lblDiffLength12 );
 
-		ftfEstimDiffLength1 = new JFormattedTextField( formatter );
-		ftfEstimDiffLength1.setEnabled( false );
-		ftfEstimDiffLength1.setFont( ftfEstimDiffLength1.getFont().deriveFont( ftfEstimDiffLength1.getFont().getSize() - 2f ) );
-		ftfEstimDiffLength1.setBackground( new Color( 0, 0, 0, 0 ) );
-		ftfEstimDiffLength1.setBorder( null );
-		ftfEstimDiffLength1.setEditable( false );
-		ftfEstimDiffLength1.setHorizontalAlignment( SwingConstants.TRAILING );
-		ftfEstimDiffLength1.setMinimumSize( new Dimension( 100, 26 ) );
-		ftfEstimDiffLength1.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimDiffLength1 = new JLabel();
+		lblEstimDiffLength1.setHorizontalAlignment( SwingConstants.TRAILING );
+		lblEstimDiffLength1.setMinimumSize( new Dimension( 100, 26 ) );
+		lblEstimDiffLength1.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimDiffLength1.setFont( ftfDiffLength1.getFont() );
 		final GridBagConstraints gbc_ftfEstimDiffLength1 = new GridBagConstraints();
 		gbc_ftfEstimDiffLength1.fill = GridBagConstraints.HORIZONTAL;
 		gbc_ftfEstimDiffLength1.insets = new Insets( 0, 0, 5, 5 );
 		gbc_ftfEstimDiffLength1.gridx = 1;
 		gbc_ftfEstimDiffLength1.gridy = 2;
-		panelMLEstimation.add( ftfEstimDiffLength1, gbc_ftfEstimDiffLength1 );
+		panelMLEstimation.add( lblEstimDiffLength1, gbc_ftfEstimDiffLength1 );
 
 		final JLabel lblUnit32 = new JLabel( "µm" );
 		lblUnit32.setFont( lblUnit32.getFont().deriveFont( lblUnit32.getFont().getSize() - 2f ) );
@@ -413,21 +401,17 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblMobileFraction2.gridy = 3;
 		panelMLEstimation.add( lblMobileFraction2, gbc_lblMobileFraction2 );
 
-		ftfEstimMobileFraction = new JFormattedTextField( formatter );
-		ftfEstimMobileFraction.setEnabled( false );
-		ftfEstimMobileFraction.setFont( ftfEstimMobileFraction.getFont().deriveFont( ftfEstimMobileFraction.getFont().getSize() - 2f ) );
-		ftfEstimMobileFraction.setBackground( new Color( 0, 0, 0, 0 ) );
-		ftfEstimMobileFraction.setBorder( null );
-		ftfEstimMobileFraction.setEditable( false );
-		ftfEstimMobileFraction.setHorizontalAlignment( SwingConstants.TRAILING );
-		ftfEstimMobileFraction.setMinimumSize( new Dimension( 100, 26 ) );
-		ftfEstimMobileFraction.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimMobileFraction = new JLabel();
+		lblEstimMobileFraction.setHorizontalAlignment( SwingConstants.TRAILING );
+		lblEstimMobileFraction.setMinimumSize( new Dimension( 100, 26 ) );
+		lblEstimMobileFraction.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimMobileFraction.setFont( ftfMobileFraction.getFont() );
 		final GridBagConstraints gbc_ftfEstimMobileFraction = new GridBagConstraints();
 		gbc_ftfEstimMobileFraction.fill = GridBagConstraints.HORIZONTAL;
 		gbc_ftfEstimMobileFraction.insets = new Insets( 0, 0, 5, 5 );
 		gbc_ftfEstimMobileFraction.gridx = 1;
 		gbc_ftfEstimMobileFraction.gridy = 3;
-		panelMLEstimation.add( ftfEstimMobileFraction, gbc_ftfEstimMobileFraction );
+		panelMLEstimation.add( lblEstimMobileFraction, gbc_ftfEstimMobileFraction );
 
 		final JLabel lblPU2 = new JLabel( "Probability of unbinding" );
 		lblPU2.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
@@ -438,21 +422,17 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblPU2.gridy = 4;
 		panelMLEstimation.add( lblPU2, gbc_lblPU2 );
 
-		ftfEstimProbUnbinding = new JFormattedTextField( formatter );
-		ftfEstimProbUnbinding.setEnabled( false );
-		ftfEstimProbUnbinding.setFont( ftfEstimProbUnbinding.getFont().deriveFont( ftfEstimProbUnbinding.getFont().getSize() - 2f ) );
-		ftfEstimProbUnbinding.setBackground( new Color( 0, 0, 0, 0 ) );
-		ftfEstimProbUnbinding.setBorder( null );
-		ftfEstimProbUnbinding.setEditable( false );
-		ftfEstimProbUnbinding.setHorizontalAlignment( SwingConstants.TRAILING );
-		ftfEstimProbUnbinding.setMinimumSize( new Dimension( 100, 26 ) );
-		ftfEstimProbUnbinding.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimProbUnbinding = new JLabel();
+		lblEstimProbUnbinding.setHorizontalAlignment( SwingConstants.TRAILING );
+		lblEstimProbUnbinding.setMinimumSize( new Dimension( 100, 26 ) );
+		lblEstimProbUnbinding.setPreferredSize( new Dimension( 100, 26 ) );
+		lblEstimProbUnbinding.setFont( ftfProbUnbinding.getFont() );
 		final GridBagConstraints gbc_ftfEstimProbUnbinding = new GridBagConstraints();
 		gbc_ftfEstimProbUnbinding.fill = GridBagConstraints.HORIZONTAL;
 		gbc_ftfEstimProbUnbinding.insets = new Insets( 0, 0, 5, 5 );
 		gbc_ftfEstimProbUnbinding.gridx = 1;
 		gbc_ftfEstimProbUnbinding.gridy = 4;
-		panelMLEstimation.add( ftfEstimProbUnbinding, gbc_ftfEstimProbUnbinding );
+		panelMLEstimation.add( lblEstimProbUnbinding, gbc_ftfEstimProbUnbinding );
 
 		final JPanel panelEstimationButtons = new JPanel();
 		panelEstimationButtons.setOpaque( false );
@@ -503,11 +483,11 @@ public class ExTrackActionPanel extends JPanel
 
 	public void setEstimationParameters( final ExTrackParameters params )
 	{
-		ftfEstimLocError.setValue( Double.valueOf( params.localizationError ) );
-		ftfEstimDiffLength0.setValue( Double.valueOf( params.diffusionLength0 ) );
-		ftfEstimDiffLength1.setValue( Double.valueOf( params.diffusionLength1 ) );
-		ftfEstimMobileFraction.setValue( Double.valueOf( params.F0 ) );
-		ftfEstimProbUnbinding.setValue( Double.valueOf( params.probabilityOfUnbinding ) );
+		lblEstimLocError.setText( formatter.format( params.localizationError ) );
+		lblEstimDiffLength0.setText( formatter.format( params.diffusionLength0 ) );
+		lblEstimDiffLength1.setText( formatter.format( params.diffusionLength1 ) );
+		lblEstimMobileFraction.setText( formatter.format( params.F0 ) );
+		lblEstimProbUnbinding.setText( formatter.format( params.probabilityOfUnbinding ) );
 	}
 
 	public void setManualParameters( final ExTrackParameters params )

@@ -77,17 +77,6 @@ public class TrackState
 		this.probabilityOfBinding = 1. - Math.exp( -probabilityOfBindingContinuous / nbSubSteps );
 	}
 
-	public double sumLogProbabilities( final Matrix track )
-	{
-		final Matrix[] vals = eval( track );
-		final Matrix probabilities = vals[ 0 ];
-		double sumProba = 0.;
-		for ( int r = 0; r < probabilities.getRowDimension(); r++ )
-			sumProba += probabilities.get( r, 0 );
-
-		return Math.log( sumProba );
-	}
-
 	/**
 	 * Returns:
 	 * <ol start="0">
