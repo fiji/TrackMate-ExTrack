@@ -8,7 +8,7 @@ maven:
   stage: build
   when: always
   script:
-   - mvn clean install -DskipTests
+   - mvn clean install 
   artifacts:
     paths:
       - target/*.jar
