@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.swing.ImageIcon;
 
+import org.scijava.plugin.Plugin;
+
 import fiji.plugin.trackmate.Dimension;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzer;
@@ -15,6 +17,7 @@ import net.imagej.ImgPlus;
 import net.imglib2.type.NativeType;
 import net.imglib2.type.numeric.RealType;
 
+@Plugin( type = SpotAnalyzerFactory.class )
 public class ExTrackProbabilitiesFeature< T extends RealType< T > & NativeType< T > > implements SpotAnalyzerFactory< T >
 {
 

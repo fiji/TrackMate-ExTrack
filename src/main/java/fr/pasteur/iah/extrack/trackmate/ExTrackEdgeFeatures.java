@@ -9,11 +9,13 @@ import java.util.Map;
 import javax.swing.ImageIcon;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
+import org.scijava.plugin.Plugin;
 
 import fiji.plugin.trackmate.Dimension;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 
+@Plugin( type = EdgeAnalyzer.class )
 public class ExTrackEdgeFeatures implements EdgeAnalyzer
 {
 
