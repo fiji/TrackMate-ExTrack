@@ -27,7 +27,7 @@ public class ExTrackImporterTestDrive
 	{
 		ImageJ.main( args );
 
-		final String trackFile = "samples/sim_tracks.npy";
+		final String trackFile = "samples/tracks.npy";
 		final Map< Integer, Matrix > tracks = NumPyReader.readTracks( trackFile );
 
 		/*
