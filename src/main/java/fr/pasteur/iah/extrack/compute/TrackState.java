@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -83,7 +83,7 @@ public class TrackState
 	 * <li>the matrix of probabilities P
 	 * <li>the matrix of state prediction pred
 	 * </ol>
-	 * 
+	 *
 	 * @param track
 	 *            the track to evaluate.
 	 * @return a new array of matrices.
@@ -113,7 +113,8 @@ public class TrackState
 		int removeStep = 0;
 		Matrix currStates = null;
 		final int nbLocs = track.getRowDimension();
-		final Matrix pred = ( doPred ) ? new Matrix( nbLocs, 2, -1. ) : null;
+		final int nbSubLocs = ( nbLocs - 1 ) * nbSubSteps + 1;
+		final Matrix pred = ( doPred ) ? new Matrix( nbSubLocs, 2, -1. ) : null;
 		Matrix currBs = null;
 
 		while ( currentStep <= nbLocs - 1 )
@@ -220,7 +221,8 @@ public class TrackState
 							}
 
 							final double val = conditionalSumPPred / sumPPred;
-							pred.set( nbLocs - currentStep + frameLen - 2, state, val );
+//							pred.set( nbLocs - currentStep + frameLen - 2, state, val );
+							pred.set( pred.getRowDimension() - ( removeStep + 1 ), state, val );
 						}
 					}
 
@@ -318,7 +320,8 @@ public class TrackState
 		{
 			for ( int state = 0; state < 2; state++ )
 			{
-				for ( int rowPred = 0; rowPred < Math.min( frameLen, pred.getRowDimension() ); rowPred++ )
+//				for ( int rowPred = 0; rowPred < Math.min( frameLen, pred.getRowDimension() ); rowPred++ )
+				for ( int rowPred = 0; rowPred < currBs.getColumnDimension(); rowPred++ )
 				{
 
 					// Conditional sum & global sum of P.
@@ -338,7 +341,24 @@ public class TrackState
 				}
 			}
 		}
-		return new Matrix[] { P, pred };
+
+		/*
+		 * Cherry-pick pred. Make a smaller matrix, jumping over nbSubSteps so
+		 * that outPred has the same size that of locs.
+		 */
+
+		final Matrix outPred = new Matrix( nbLocs, pred.getColumnDimension() );
+		for ( int rowOutPred = 0; rowOutPred < outPred.getRowDimension(); rowOutPred++ )
+		{
+			final int rowPred = rowOutPred * nbSubSteps;
+			for ( int state = 0; state < outPred.getColumnDimension(); state++ )
+			{
+				final double val = pred.get( rowPred, state );
+				outPred.set( rowOutPred, state, val );
+			}
+		}
+
+		return new Matrix[] { P, outPred };
 	}
 
 	private static Matrix[] fuseTracks( final Matrix Km, final Matrix Ks, final Matrix LP )
