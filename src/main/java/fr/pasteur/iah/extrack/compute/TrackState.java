@@ -310,7 +310,7 @@ public class TrackState
 
 		final Matrix P = new Matrix( LP.getRowDimension(), 1 );
 		for ( int r = 0; r < LP.getRowDimension(); r++ )
-				P.set( r, 0, Math.exp( LP.get( r, 0 ) ) );
+			P.set( r, 0, Math.exp( LP.get( r, 0 ) ) );
 
 		/*
 		 * Update predictions.
@@ -347,15 +347,23 @@ public class TrackState
 		 * that outPred has the same size that of locs.
 		 */
 
-		final Matrix outPred = new Matrix( nbLocs, pred.getColumnDimension() );
-		for ( int rowOutPred = 0; rowOutPred < outPred.getRowDimension(); rowOutPred++ )
+		final Matrix outPred;
+		if ( doPred )
 		{
-			final int rowPred = rowOutPred * nbSubSteps;
-			for ( int state = 0; state < outPred.getColumnDimension(); state++ )
+			outPred = new Matrix( nbLocs, pred.getColumnDimension() );
+			for ( int rowOutPred = 0; rowOutPred < outPred.getRowDimension(); rowOutPred++ )
 			{
-				final double val = pred.get( rowPred, state );
-				outPred.set( rowOutPred, state, val );
+				final int rowPred = rowOutPred * nbSubSteps;
+				for ( int state = 0; state < outPred.getColumnDimension(); state++ )
+				{
+					final double val = pred.get( rowPred, state );
+					outPred.set( rowOutPred, state, val );
+				}
 			}
+		}
+		else
+		{
+			outPred = null;
 		}
 
 		return new Matrix[] { P, outPred };
