@@ -59,10 +59,8 @@ public class ExTrackDoPredictions implements Runnable
 	@Override
 	public void run()
 	{
-		// TODO We also need to set frameLen and nbSubSteps
-		final int frameLen = 5;
-		// nbSubSteps = 1 for prediction.
-		final int nbSubSteps = 1;
+		final int nbSubSteps = params.nbSubteps;
+		final int frameLen = params.nFrames;
 		final boolean doFrame = true;
 		final boolean doPred = true;
 

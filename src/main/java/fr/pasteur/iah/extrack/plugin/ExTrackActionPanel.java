@@ -1,5 +1,5 @@
 /*-
- * #%L
+* #%L
  * TrackMate interface for the ExTrack track analysis software.
  * %%
  * Copyright (C) 2020 Institut Pasteur.
@@ -27,7 +27,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -38,10 +37,15 @@ import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeListener;
+
+import com.itextpdf.text.Font;
 
 import fr.pasteur.iah.extrack.compute.ExTrackParameters;
 
@@ -49,6 +53,10 @@ public class ExTrackActionPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
+
+	private static final int DEFAULT_NB_SUBSTEPS = 2;
+
+	private static final int DEFAULT_NFRAMES = 5;
 
 	final JButton btnEstimStart;
 
@@ -83,6 +91,10 @@ public class ExTrackActionPanel extends JPanel
 	private final JLabel lblLog;
 
 	private final NumberFormat formatter = new DecimalFormat( "##########.#############" );
+
+	private final SpinnerNumberModel smNbSubSteps;
+
+	private final SpinnerNumberModel smNFrames;
 
 	public ExTrackActionPanel()
 	{
@@ -457,26 +469,103 @@ public class ExTrackActionPanel extends JPanel
 		panelEstimationButtons.add( btnEstimStart );
 
 		/*
+		 * Advanced parameters tab.
+		 */
+
+		final JPanel panelAdvancedParams = new JPanel();
+		mainPane.addTab( "Advanced", null, panelAdvancedParams, null );
+		final GridBagLayout gbl_panelAdvancedParams = new GridBagLayout();
+		gbl_panelAdvancedParams.columnWidths = new int[] { 0, 0, 0, 0 };
+		gbl_panelAdvancedParams.rowHeights = new int[] { 0, 0, 0, 0, 0 };
+		gbl_panelAdvancedParams.columnWeights = new double[] { 0.0, 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panelAdvancedParams.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE };
+		panelAdvancedParams.setLayout( gbl_panelAdvancedParams );
+
+		final JLabel lblAdParams = new JLabel( "Advanced parameter" );
+		lblAdParams.setFont( getFont().deriveFont( Font.BOLD ) );
+		final GridBagConstraints gbc_lblAdParams = new GridBagConstraints();
+		gbc_lblAdParams.anchor = GridBagConstraints.WEST;
+		gbc_lblAdParams.gridwidth = 3;
+		gbc_lblAdParams.insets = new Insets( 5, 5, 5, 5 );
+		gbc_lblAdParams.gridx = 0;
+		gbc_lblAdParams.gridy = 0;
+		panelAdvancedParams.add( lblAdParams, gbc_lblAdParams );
+
+		final JLabel lblNbSubSteps = new JLabel( "N. sub steps" );
+		lblNbSubSteps.setFont( ftfProbUnbinding.getFont() );
+		final GridBagConstraints gbc_lblNbSubSteps = new GridBagConstraints();
+		gbc_lblNbSubSteps.anchor = GridBagConstraints.EAST;
+		gbc_lblNbSubSteps.insets = new Insets( 5, 5, 5, 5 );
+		gbc_lblNbSubSteps.gridx = 0;
+		gbc_lblNbSubSteps.gridy = 1;
+		panelAdvancedParams.add( lblNbSubSteps, gbc_lblNbSubSteps );
+
+		smNbSubSteps = new SpinnerNumberModel( DEFAULT_NB_SUBSTEPS, 1, 100, 1 );
+		final JSpinner spinnerNbSubSteps = new JSpinner( smNbSubSteps );
+		spinnerNbSubSteps.setFont( ftfProbUnbinding.getFont() );
+		final GridBagConstraints gbc_spinnerNbSubSteps = new GridBagConstraints();
+		gbc_spinnerNbSubSteps.insets = new Insets( 5, 5, 5, 5 );
+		gbc_spinnerNbSubSteps.gridx = 1;
+		gbc_spinnerNbSubSteps.gridy = 1;
+		panelAdvancedParams.add( spinnerNbSubSteps, gbc_spinnerNbSubSteps );
+
+		final JLabel lblNFrames = new JLabel( "N. frames" );
+		lblNFrames.setFont( ftfProbUnbinding.getFont() );
+		final GridBagConstraints gbc_lblNFrames = new GridBagConstraints();
+		gbc_lblNFrames.anchor = GridBagConstraints.EAST;
+		gbc_lblNFrames.insets = new Insets( 5, 5, 5, 5 );
+		gbc_lblNFrames.gridx = 0;
+		gbc_lblNFrames.gridy = 2;
+		panelAdvancedParams.add( lblNFrames, gbc_lblNFrames );
+
+		smNFrames = new SpinnerNumberModel( DEFAULT_NFRAMES, 2, 100, 1 );
+		final JSpinner spinnerNFrames = new JSpinner( smNFrames );
+		spinnerNFrames.setFont( ftfProbUnbinding.getFont() );
+		final GridBagConstraints gbc_spinnerNFrames = new GridBagConstraints();
+		gbc_spinnerNFrames.insets = new Insets( 5, 5, 5, 5 );
+		gbc_spinnerNFrames.gridx = 1;
+		gbc_spinnerNFrames.gridy = 2;
+		panelAdvancedParams.add( spinnerNFrames, gbc_spinnerNFrames );
+
+		final JLabel lblTimeLog = new JLabel( " " );
+		final GridBagConstraints gbc_lblTimeLog = new GridBagConstraints();
+		gbc_lblTimeLog.fill = GridBagConstraints.HORIZONTAL;
+		gbc_lblTimeLog.anchor = GridBagConstraints.SOUTH;
+		gbc_lblTimeLog.gridwidth = 3;
+		gbc_lblTimeLog.insets = new Insets( 5, 5, 5, 5 );
+		gbc_lblTimeLog.gridx = 0;
+		gbc_lblTimeLog.gridy = 3;
+		panelAdvancedParams.add( lblTimeLog, gbc_lblTimeLog );
+
+		/*
 		 * Set listeners.
 		 */
 
 		final ExTrackParameters params = ExTrackParameters.create().build();
 		setManualParameters( params );
 
-		final PropertyChangeListener l = new PropertyChangeListener()
-		{
-
-			@Override
-			public void propertyChange( final PropertyChangeEvent evt )
-			{
-				setEstimationParameters( getManualParameters() );
-			}
-		};
+		final PropertyChangeListener l = e -> setEstimationParameters( getManualParameters() );
 		ftfLocError.addPropertyChangeListener( l );
 		ftfDiffLength0.addPropertyChangeListener( l );
 		ftfDiffLength1.addPropertyChangeListener( l );
 		ftfMobileFraction.addPropertyChangeListener( l );
 		ftfProbUnbinding.addPropertyChangeListener( l );
+
+		final ChangeListener lTimeLog = e -> {
+			final double nbSubStepsRatio = ( ( Number ) smNbSubSteps.getValue() ).doubleValue() / DEFAULT_NB_SUBSTEPS;
+			final double frameLenRatio = ( ( Number ) smNFrames.getValue() ).doubleValue() / DEFAULT_NFRAMES;
+			final double factor = Math.pow( 2, ( nbSubStepsRatio * frameLenRatio ) ) / 2.;
+			
+			final String str = factor > 1.
+					? String.format( "Computation time will increase roughly by a factor %d.", ( int ) Math.ceil( factor ) )
+					: factor <= 0.5
+							? String.format( "Computation time will decrease roughly by a factor %d.", ( int ) Math.round( 1 / factor ) )
+							: " ";
+			lblTimeLog.setText( str );
+			setEstimationParameters( getManualParameters() );
+		};
+		spinnerNbSubSteps.addChangeListener( lTimeLog );
+		spinnerNFrames.addChangeListener( lTimeLog );
 
 		setEstimationParameters( ExTrackParameters.ESTIMATION_START_POINT );
 	}
@@ -488,6 +577,8 @@ public class ExTrackActionPanel extends JPanel
 		lblEstimDiffLength1.setText( formatter.format( params.diffusionLength1 ) );
 		lblEstimMobileFraction.setText( formatter.format( params.F0 ) );
 		lblEstimProbUnbinding.setText( formatter.format( params.probabilityOfUnbinding ) );
+		smNbSubSteps.setValue( Integer.valueOf( params.nbSubteps ) );
+		smNFrames.setValue( Integer.valueOf( params.nFrames ) );
 	}
 
 	public void setManualParameters( final ExTrackParameters params )
@@ -497,6 +588,8 @@ public class ExTrackActionPanel extends JPanel
 		ftfDiffLength1.setValue( Double.valueOf( params.diffusionLength1 ) );
 		ftfMobileFraction.setValue( Double.valueOf( params.F0 ) );
 		ftfProbUnbinding.setValue( Double.valueOf( params.probabilityOfUnbinding ) );
+		smNbSubSteps.setValue( Integer.valueOf( params.nbSubteps ) );
+		smNFrames.setValue( Integer.valueOf( params.nFrames ) );
 	}
 
 	public ExTrackParameters getManualParameters()
@@ -507,6 +600,8 @@ public class ExTrackActionPanel extends JPanel
 				.diffusionLength1( ( ( Number ) ftfDiffLength1.getValue() ).doubleValue() )
 				.F0( ( ( Number ) ftfMobileFraction.getValue() ).doubleValue() )
 				.probabilityOfUnbinding( ( ( Number ) ftfProbUnbinding.getValue() ).doubleValue() )
+				.nbSubSteps( ( ( Number ) smNbSubSteps.getValue() ).intValue() )
+				.nFrames( ( ( Number ) smNFrames.getValue() ).intValue() )
 				.build();
 	}
 

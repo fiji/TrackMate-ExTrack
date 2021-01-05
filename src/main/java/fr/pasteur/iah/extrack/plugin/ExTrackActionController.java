@@ -130,11 +130,20 @@ public class ExTrackActionController
 		new Thread( () -> {
 			try
 			{
+				final ExTrackParameters startPoint = gui.getManualParameters();
 				final Consumer< double[] > valueWatcher = array -> {
-					SwingUtilities.invokeLater( () -> gui.setEstimationParameters( ExTrackParameters.fromArray( array ) ) );
+					final ExTrackParameters params = ExTrackParameters.create()
+							.localizationError( array[ 0 ] )
+							.diffusionLength0( array[ 1 ] )
+							.diffusionLength1( array[ 2 ] )
+							.F0( array[ 3 ] )
+							.probabilityOfUnbinding( array[ 4 ] )
+							.nbSubSteps( startPoint.nbSubteps )
+							.nFrames( startPoint.nFrames )
+							.build();
+					SwingUtilities.invokeLater( () -> gui.setEstimationParameters( params ) );
 				};
 				final Map< Integer, Matrix > tracks = ExTrackUtil.toMatrix( trackmate.getModel() );
-				final ExTrackParameters startPoint = gui.getManualParameters();
 				final ExTrackParameterOptimizer optimizer = new ExTrackParameterOptimizer( startPoint, tracks, logger, valueWatcher );
 				this.cancelable = optimizer;
 				optimizer.run();

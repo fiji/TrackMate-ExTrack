@@ -58,14 +58,13 @@ public class ExTrackParameterOptimizer implements Runnable, Cancelable
 	@Override
 	public void run()
 	{
-		// TODO We also need to set frameLen and nbSubSteps
-		final int frameLen = 5;
-		final int nbSubSteps = 1;
+		final int nbSubSteps = startPoint.nbSubteps;
+		final int frameLen = startPoint.nFrames;
 		final boolean doFrame = true;
 		// No doPred for optimization.
 		final boolean doPred = false;
 
-		final double[] parameters = startPoint.toArray();
+		final double[] parameters = startPoint.optimParamstoArray();
 		final double tolfx = 1e-6;
 		final double tolx = 1e-6;
 
@@ -103,6 +102,15 @@ public class ExTrackParameterOptimizer implements Runnable, Cancelable
 
 	public ExTrackParameters getParameters()
 	{
-		return ExTrackParameters.fromArray( optimizer.getCurrentValue() );
+		final double[] array = optimizer.getCurrentValue();
+		return ExTrackParameters.create()
+				.localizationError( array[ 0 ] )
+				.diffusionLength0( array[ 1 ] )
+				.diffusionLength1( array[ 2 ] )
+				.F0( array[ 3 ] )
+				.probabilityOfUnbinding( array[ 4 ] )
+				.nbSubSteps( startPoint.nbSubteps )
+				.nFrames( startPoint.nFrames )
+				.build();
 	}
 }

@@ -33,21 +33,29 @@ public class ExTrackParameters
 
 	public final double probabilityOfUnbinding;
 
+	public final int nbSubteps;
+
+	public final int nFrames;
+
 	private ExTrackParameters(
 			final double localizationError,
 			final double diffusionLength0,
 			final double diffusionLength1,
 			final double F0,
-			final double probabilityOfUnbinding )
+			final double probabilityOfUnbinding,
+			final int nbSubteps,
+			final int nFrames )
 	{
 		this.localizationError = localizationError;
 		this.diffusionLength0 = diffusionLength0;
 		this.diffusionLength1 = diffusionLength1;
 		this.F0 = F0;
 		this.probabilityOfUnbinding = probabilityOfUnbinding;
+		this.nbSubteps = nbSubteps;
+		this.nFrames = nFrames;
 	}
 
-	public double[] toArray()
+	public double[] optimParamstoArray()
 	{
 		return new double[] {
 				localizationError,
@@ -62,7 +70,7 @@ public class ExTrackParameters
 		return new Builder();
 	}
 
-	public static final ExTrackParameters ESTIMATION_START_POINT = new ExTrackParameters( 0.3, 0.08, 0.08, 0.1, 0.9 );
+	public static final ExTrackParameters ESTIMATION_START_POINT = new ExTrackParameters( 0.3, 0.08, 0.08, 0.1, 0.9, 2, 5 );
 
 	public static class Builder
 	{
@@ -75,6 +83,10 @@ public class ExTrackParameters
 		private double F0 = 0.1;
 
 		private double probabilityOfUnbinding = 0.9;
+
+		private int nbSubSteps = 2;
+
+		private int nFrames = 5;
 
 		public Builder localizationError( final double localizationError )
 		{
@@ -106,6 +118,18 @@ public class ExTrackParameters
 			return this;
 		}
 
+		public Builder nbSubSteps( final int nbSubSteps )
+		{
+			this.nbSubSteps = nbSubSteps;
+			return this;
+		}
+
+		public Builder nFrames( final int nFrames )
+		{
+			this.nFrames = nFrames;
+			return this;
+		}
+
 		public ExTrackParameters build()
 		{
 			return new ExTrackParameters(
@@ -113,18 +137,9 @@ public class ExTrackParameters
 					diffusionLength0,
 					diffusionLength1,
 					F0,
-					probabilityOfUnbinding );
+					probabilityOfUnbinding,
+					nbSubSteps,
+					nFrames );
 		}
-	}
-
-	public static ExTrackParameters fromArray( final double[] array )
-	{
-		return ExTrackParameters.create()
-				.localizationError( array[ 0 ] )
-				.diffusionLength0( array[ 1 ] )
-				.diffusionLength1( array[ 2 ] )
-				.F0( array[ 3 ] )
-				.probabilityOfUnbinding( array[ 4 ] )
-				.build();
 	}
 }
