@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -37,7 +37,20 @@ import fr.pasteur.iah.extrack.util.ExTrackUtil;
 public class ExTrackComputeAction extends AbstractTMAction
 {
 
-	public static final String INFO_TEXT = "Please Francois write this. TODO.";
+	public static final String INFO_TEXT = "<html>"
+			+ "<b>ExTrack</b>"
+			+ "<p>"
+			+ "ExTrack allows for the estimation of diffusion coefficient and transition rates as "
+			+ "well as consecutive states of tracks, even when diffusion per step is less than "
+			+ "an order of magnitude higher than localization error."
+			+ "<p>"
+			+ "ExTrack determines the "
+			+ "diffusion coefficients, localization error and transition rates of particles which "
+			+ "transition between two diffusion states (<i>e.g.</i> immobile <i>vs</i> diffusive). "
+			+ "Once these parameters are determined, ExTrack computes the probability of being in "
+			+ "a given state at every time point of each track. These states probabilities can "
+			+ "then be visualized using spot and edge features."
+			+ "</html>";
 
 	public static final String KEY = "COMPUTE_EXTRACK_PROBABILITIES";
 
