@@ -197,7 +197,7 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblUnit1.gridy = 0;
 		panelManualInput.add( lblUnit1, gbc_lblUnit1 );
 
-		final JLabel lblDiffLength0 = new JLabel( "Diffusion length 0" );
+		final JLabel lblDiffLength0 = new JLabel( "Diffusion length for diffusive state" );
 		lblDiffLength0.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblDiffLength0 = new GridBagConstraints();
 		gbc_lblDiffLength0.anchor = GridBagConstraints.EAST;
@@ -227,7 +227,7 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblUnit2.gridy = 1;
 		panelManualInput.add( lblUnit2, gbc_lblUnit2 );
 
-		final JLabel lblDiffLength1 = new JLabel( "Diffusion length 1" );
+		final JLabel lblDiffLength1 = new JLabel( "Diffusion length for bound state" );
 		lblDiffLength1.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblDiffLength1 = new GridBagConstraints();
 		gbc_lblDiffLength1.anchor = GridBagConstraints.EAST;
@@ -257,7 +257,7 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblUnit3.gridy = 2;
 		panelManualInput.add( lblUnit3, gbc_lblUnit3 );
 
-		final JLabel lblMobileFraction = new JLabel( "Mobile fraction" );
+		final JLabel lblMobileFraction = new JLabel( "Fraction in diffusive state" );
 		lblMobileFraction.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblMobileFraction = new GridBagConstraints();
 		gbc_lblMobileFraction.anchor = GridBagConstraints.EAST;
@@ -344,7 +344,7 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblUnit12.gridy = 0;
 		panelMLEstimation.add( lblUnit12, gbc_lblUnit12 );
 
-		final JLabel lblDiffLength02 = new JLabel( "Diffusion length 0" );
+		final JLabel lblDiffLength02 = new JLabel( "Diffusion length for diffusive state" );
 		lblDiffLength02.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblDiffLength02 = new GridBagConstraints();
 		gbc_lblDiffLength02.anchor = GridBagConstraints.EAST;
@@ -374,7 +374,7 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblUnit22.gridy = 1;
 		panelMLEstimation.add( lblUnit22, gbc_lblUnit22 );
 
-		final JLabel lblDiffLength12 = new JLabel( "Diffusion length 1" );
+		final JLabel lblDiffLength12 = new JLabel( "Diffusion length for bound state" );
 		lblDiffLength12.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblDiffLength12 = new GridBagConstraints();
 		gbc_lblDiffLength12.anchor = GridBagConstraints.EAST;
@@ -404,7 +404,7 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblUnit32.gridy = 2;
 		panelMLEstimation.add( lblUnit32, gbc_lblUnit32 );
 
-		final JLabel lblMobileFraction2 = new JLabel( "Mobile fraction" );
+		final JLabel lblMobileFraction2 = new JLabel( "Fraction in diffusive state" );
 		lblMobileFraction2.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblMobileFraction2 = new GridBagConstraints();
 		gbc_lblMobileFraction2.anchor = GridBagConstraints.EAST;
