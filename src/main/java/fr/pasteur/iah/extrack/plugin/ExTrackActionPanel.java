@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-3.0.html>.
@@ -58,6 +58,12 @@ public class ExTrackActionPanel extends JPanel
 
 	private static final int DEFAULT_NFRAMES = 5;
 
+	private static final String LOCALIZATION_ERROR_TOOLTIP = "Standard deviation (std) from real position to observed position.";
+	private static final String DIFFUSION_LENGTH0_TOOLTIP = "Std corresponding to the distance between consecutive real positions in state 0.";
+	private static final String DIFFUSION_LENGTH1_TOOLTIP = "Std corresponding to the distance between consecutive real positions in state 1.";
+	private static final String MOBILE_FRACTION_TOOLTIP = "Fraction of particles in state 1.";
+	private static final String UNBINDING_PROBABILITY_TOOLTIP = "Probability of unbinding per step.";
+
 	final JButton btnEstimStart;
 
 	final JButton btnEstimCancel;
@@ -98,6 +104,7 @@ public class ExTrackActionPanel extends JPanel
 
 	public ExTrackActionPanel()
 	{
+		setPreferredSize( new Dimension( 428, 488 ) );
 		setLayout( new BorderLayout( 0, 0 ) );
 
 		final JPanel panelBottom = new JPanel();
@@ -140,7 +147,7 @@ public class ExTrackActionPanel extends JPanel
 
 		panelButtons.add( Box.createHorizontalGlue() );
 
-		btnCompute = new JButton( "Compute" );
+		btnCompute = new JButton( "Compute probabilities" );
 		panelButtons.add( btnCompute );
 		btnCompute.setFont( btnCompute.getFont().deriveFont( btnCompute.getFont().getSize() - 2f ) );
 
@@ -162,12 +169,13 @@ public class ExTrackActionPanel extends JPanel
 		mainPane.addTab( "Manual input", null, panelManualInput, null );
 		final GridBagLayout gbl_panelManualInput = new GridBagLayout();
 		gbl_panelManualInput.columnWidths = new int[] { 0, 0, 0, 0 };
-		gbl_panelManualInput.rowHeights = new int[] { 0, 0, 0, 0, 0, 0 };
-		gbl_panelManualInput.columnWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		gbl_panelManualInput.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gbl_panelManualInput.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 0 };
+		gbl_panelManualInput.columnWeights = new double[] { 0.0, 0.0, 1.0, Double.MIN_VALUE };
+		gbl_panelManualInput.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE };
 		panelManualInput.setLayout( gbl_panelManualInput );
 
 		final JLabel lblLocError = new JLabel( "Localization error" );
+		lblLocError.setToolTipText( LOCALIZATION_ERROR_TOOLTIP );
 		lblLocError.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblLocError = new GridBagConstraints();
 		gbc_lblLocError.anchor = GridBagConstraints.EAST;
@@ -177,6 +185,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( lblLocError, gbc_lblLocError );
 
 		ftfLocError = new JFormattedTextField( formatter );
+		ftfLocError.setToolTipText( LOCALIZATION_ERROR_TOOLTIP );
 		ftfLocError.setHorizontalAlignment( SwingConstants.TRAILING );
 		ftfLocError.setMinimumSize( new Dimension( 100, 26 ) );
 		ftfLocError.setFont( ftfLocError.getFont().deriveFont( ftfLocError.getFont().getSize() - 2f ) );
@@ -189,6 +198,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( ftfLocError, gbc_ftfLocError );
 
 		final JLabel lblUnit1 = new JLabel( "µm" );
+		lblUnit1.setToolTipText( LOCALIZATION_ERROR_TOOLTIP );
 		lblUnit1.setFont( lblUnit1.getFont().deriveFont( lblUnit1.getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblUnit1 = new GridBagConstraints();
 		gbc_lblUnit1.anchor = GridBagConstraints.WEST;
@@ -198,6 +208,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( lblUnit1, gbc_lblUnit1 );
 
 		final JLabel lblDiffLength0 = new JLabel( "Diffusion length for diffusive state" );
+		lblDiffLength0.setToolTipText( DIFFUSION_LENGTH0_TOOLTIP );
 		lblDiffLength0.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblDiffLength0 = new GridBagConstraints();
 		gbc_lblDiffLength0.anchor = GridBagConstraints.EAST;
@@ -207,6 +218,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( lblDiffLength0, gbc_lblDiffLength0 );
 
 		ftfDiffLength0 = new JFormattedTextField( formatter );
+		ftfDiffLength0.setToolTipText( DIFFUSION_LENGTH0_TOOLTIP );
 		ftfDiffLength0.setHorizontalAlignment( SwingConstants.TRAILING );
 		ftfDiffLength0.setMinimumSize( new Dimension( 100, 26 ) );
 		ftfDiffLength0.setFont( ftfDiffLength0.getFont().deriveFont( ftfDiffLength0.getFont().getSize() - 2f ) );
@@ -219,6 +231,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( ftfDiffLength0, gbc_ftfDiffLength0 );
 
 		final JLabel lblUnit2 = new JLabel( "µm" );
+		lblUnit2.setToolTipText( DIFFUSION_LENGTH0_TOOLTIP );
 		lblUnit2.setFont( lblUnit2.getFont().deriveFont( lblUnit2.getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblUnit2 = new GridBagConstraints();
 		gbc_lblUnit2.anchor = GridBagConstraints.WEST;
@@ -228,6 +241,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( lblUnit2, gbc_lblUnit2 );
 
 		final JLabel lblDiffLength1 = new JLabel( "Diffusion length for bound state" );
+		lblDiffLength1.setToolTipText( DIFFUSION_LENGTH1_TOOLTIP );
 		lblDiffLength1.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblDiffLength1 = new GridBagConstraints();
 		gbc_lblDiffLength1.anchor = GridBagConstraints.EAST;
@@ -237,6 +251,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( lblDiffLength1, gbc_lblDiffLength1 );
 
 		ftfDiffLength1 = new JFormattedTextField( formatter );
+		ftfDiffLength1.setToolTipText( DIFFUSION_LENGTH1_TOOLTIP );
 		ftfDiffLength1.setHorizontalAlignment( SwingConstants.TRAILING );
 		ftfDiffLength1.setMinimumSize( new Dimension( 100, 26 ) );
 		ftfDiffLength1.setFont( ftfDiffLength1.getFont().deriveFont( ftfDiffLength1.getFont().getSize() - 2f ) );
@@ -249,6 +264,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( ftfDiffLength1, gbc_ftfDiffLength1 );
 
 		final JLabel lblUnit3 = new JLabel( "µm" );
+		lblUnit3.setToolTipText( DIFFUSION_LENGTH1_TOOLTIP );
 		lblUnit3.setFont( lblUnit3.getFont().deriveFont( lblUnit3.getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblUnit3 = new GridBagConstraints();
 		gbc_lblUnit3.anchor = GridBagConstraints.WEST;
@@ -258,6 +274,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( lblUnit3, gbc_lblUnit3 );
 
 		final JLabel lblMobileFraction = new JLabel( "Fraction in diffusive state" );
+		lblMobileFraction.setToolTipText( MOBILE_FRACTION_TOOLTIP );
 		lblMobileFraction.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblMobileFraction = new GridBagConstraints();
 		gbc_lblMobileFraction.anchor = GridBagConstraints.EAST;
@@ -267,6 +284,7 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( lblMobileFraction, gbc_lblMobileFraction );
 
 		ftfMobileFraction = new JFormattedTextField( formatter );
+		ftfMobileFraction.setToolTipText( MOBILE_FRACTION_TOOLTIP );
 		ftfMobileFraction.setHorizontalAlignment( SwingConstants.TRAILING );
 		ftfMobileFraction.setMinimumSize( new Dimension( 100, 26 ) );
 		ftfMobileFraction.setFont( ftfMobileFraction.getFont().deriveFont( ftfMobileFraction.getFont().getSize() - 2f ) );
@@ -279,25 +297,47 @@ public class ExTrackActionPanel extends JPanel
 		panelManualInput.add( ftfMobileFraction, gbc_ftfMobileFraction );
 
 		final JLabel lblPU = new JLabel( "Probability of unbinding" );
+		lblPU.setToolTipText( UNBINDING_PROBABILITY_TOOLTIP );
 		lblPU.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblPU = new GridBagConstraints();
 		gbc_lblPU.anchor = GridBagConstraints.EAST;
-		gbc_lblPU.insets = new Insets( 0, 0, 0, 5 );
+		gbc_lblPU.insets = new Insets( 0, 0, 5, 5 );
 		gbc_lblPU.gridx = 0;
 		gbc_lblPU.gridy = 4;
 		panelManualInput.add( lblPU, gbc_lblPU );
 
 		ftfProbUnbinding = new JFormattedTextField( formatter );
+		ftfProbUnbinding.setToolTipText( UNBINDING_PROBABILITY_TOOLTIP );
 		ftfProbUnbinding.setHorizontalAlignment( SwingConstants.TRAILING );
 		ftfProbUnbinding.setMinimumSize( new Dimension( 100, 26 ) );
 		ftfProbUnbinding.setFont( ftfProbUnbinding.getFont().deriveFont( ftfProbUnbinding.getFont().getSize() - 2f ) );
 		ftfProbUnbinding.setPreferredSize( new Dimension( 100, 26 ) );
 		final GridBagConstraints gbc_ftfProbUnbinding = new GridBagConstraints();
 		gbc_ftfProbUnbinding.fill = GridBagConstraints.HORIZONTAL;
-		gbc_ftfProbUnbinding.insets = new Insets( 0, 0, 0, 5 );
+		gbc_ftfProbUnbinding.insets = new Insets( 0, 0, 5, 5 );
 		gbc_ftfProbUnbinding.gridx = 1;
 		gbc_ftfProbUnbinding.gridy = 4;
 		panelManualInput.add( ftfProbUnbinding, gbc_ftfProbUnbinding );
+
+		final JLabel lblExplainManual = new JLabel( "<html>"
+				+ "Manual parameters only need to be tuned in case the experimenter want to compute "
+				+ "track probabilities without estimation by fitting (next panel). "
+				+ "Some parameters can be fixed for fitting if values are known by other means. "
+				+ "The values entered here are also used as initial values for the fit estimation."
+				+ "<p>"
+				+ "If the "
+				+ "initial parameters are not order of magnitude wrong, fit should work correctly but it may be "
+				+ "worthy to test different values in case of strange fit results or errors."
+				+ "</html>" );
+		lblExplainManual.setFont( lblExplainManual.getFont().deriveFont( lblExplainManual.getFont().getSize() - 2f ) );
+		final GridBagConstraints gbc_lblExplainManual = new GridBagConstraints();
+		gbc_lblExplainManual.anchor = GridBagConstraints.SOUTH;
+		gbc_lblExplainManual.fill = GridBagConstraints.HORIZONTAL;
+		gbc_lblExplainManual.gridwidth = 3;
+		gbc_lblExplainManual.insets = new Insets( 0, 0, 0, 5 );
+		gbc_lblExplainManual.gridx = 0;
+		gbc_lblExplainManual.gridy = 5;
+		panelManualInput.add( lblExplainManual, gbc_lblExplainManual );
 
 		/*
 		 * Estimation panel.
@@ -315,6 +355,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.setLayout( gbl_panelMLEstimation );
 
 		final JLabel lblLocError2 = new JLabel( "Localization error" );
+		lblLocError2.setToolTipText( LOCALIZATION_ERROR_TOOLTIP );
 		lblLocError2.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblLocError2 = new GridBagConstraints();
 		gbc_lblLocError2.anchor = GridBagConstraints.EAST;
@@ -324,6 +365,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblLocError2, gbc_lblLocError2 );
 
 		lblEstimLocError = new JLabel();
+		lblEstimLocError.setToolTipText( LOCALIZATION_ERROR_TOOLTIP );
 		lblEstimLocError.setHorizontalAlignment( SwingConstants.TRAILING );
 		lblEstimLocError.setMinimumSize( new Dimension( 100, 26 ) );
 		lblEstimLocError.setPreferredSize( new Dimension( 100, 26 ) );
@@ -336,6 +378,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblEstimLocError, gbc_ftfEstimLocError );
 
 		final JLabel lblUnit12 = new JLabel( "µm" );
+		lblUnit12.setToolTipText( LOCALIZATION_ERROR_TOOLTIP );
 		lblUnit12.setFont( lblUnit12.getFont().deriveFont( lblUnit12.getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblUnit12 = new GridBagConstraints();
 		gbc_lblUnit12.anchor = GridBagConstraints.WEST;
@@ -345,6 +388,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblUnit12, gbc_lblUnit12 );
 
 		final JLabel lblDiffLength02 = new JLabel( "Diffusion length for diffusive state" );
+		lblDiffLength02.setToolTipText( DIFFUSION_LENGTH0_TOOLTIP );
 		lblDiffLength02.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblDiffLength02 = new GridBagConstraints();
 		gbc_lblDiffLength02.anchor = GridBagConstraints.EAST;
@@ -354,6 +398,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblDiffLength02, gbc_lblDiffLength02 );
 
 		lblEstimDiffLength0 = new JLabel();
+		lblEstimDiffLength0.setToolTipText( DIFFUSION_LENGTH0_TOOLTIP );
 		lblEstimDiffLength0.setHorizontalAlignment( SwingConstants.TRAILING );
 		lblEstimDiffLength0.setMinimumSize( new Dimension( 100, 26 ) );
 		lblEstimDiffLength0.setPreferredSize( new Dimension( 100, 26 ) );
@@ -366,6 +411,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblEstimDiffLength0, gbc_ftfEstimDiffLength0 );
 
 		final JLabel lblUnit22 = new JLabel( "µm" );
+		lblUnit22.setToolTipText( DIFFUSION_LENGTH0_TOOLTIP );
 		lblUnit22.setFont( lblUnit22.getFont().deriveFont( lblUnit22.getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblUnit22 = new GridBagConstraints();
 		gbc_lblUnit22.anchor = GridBagConstraints.WEST;
@@ -375,6 +421,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblUnit22, gbc_lblUnit22 );
 
 		final JLabel lblDiffLength12 = new JLabel( "Diffusion length for bound state" );
+		lblDiffLength12.setToolTipText( DIFFUSION_LENGTH1_TOOLTIP );
 		lblDiffLength12.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblDiffLength12 = new GridBagConstraints();
 		gbc_lblDiffLength12.anchor = GridBagConstraints.EAST;
@@ -384,6 +431,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblDiffLength12, gbc_lblDiffLength12 );
 
 		lblEstimDiffLength1 = new JLabel();
+		lblEstimDiffLength1.setToolTipText( DIFFUSION_LENGTH1_TOOLTIP );
 		lblEstimDiffLength1.setHorizontalAlignment( SwingConstants.TRAILING );
 		lblEstimDiffLength1.setMinimumSize( new Dimension( 100, 26 ) );
 		lblEstimDiffLength1.setPreferredSize( new Dimension( 100, 26 ) );
@@ -396,6 +444,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblEstimDiffLength1, gbc_ftfEstimDiffLength1 );
 
 		final JLabel lblUnit32 = new JLabel( "µm" );
+		lblUnit32.setToolTipText( DIFFUSION_LENGTH1_TOOLTIP );
 		lblUnit32.setFont( lblUnit32.getFont().deriveFont( lblUnit32.getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblUnit32 = new GridBagConstraints();
 		gbc_lblUnit32.anchor = GridBagConstraints.WEST;
@@ -405,6 +454,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblUnit32, gbc_lblUnit32 );
 
 		final JLabel lblMobileFraction2 = new JLabel( "Fraction in diffusive state" );
+		lblMobileFraction2.setToolTipText( MOBILE_FRACTION_TOOLTIP );
 		lblMobileFraction2.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblMobileFraction2 = new GridBagConstraints();
 		gbc_lblMobileFraction2.anchor = GridBagConstraints.EAST;
@@ -414,6 +464,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblMobileFraction2, gbc_lblMobileFraction2 );
 
 		lblEstimMobileFraction = new JLabel();
+		lblEstimMobileFraction.setToolTipText( MOBILE_FRACTION_TOOLTIP );
 		lblEstimMobileFraction.setHorizontalAlignment( SwingConstants.TRAILING );
 		lblEstimMobileFraction.setMinimumSize( new Dimension( 100, 26 ) );
 		lblEstimMobileFraction.setPreferredSize( new Dimension( 100, 26 ) );
@@ -426,6 +477,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblEstimMobileFraction, gbc_ftfEstimMobileFraction );
 
 		final JLabel lblPU2 = new JLabel( "Probability of unbinding" );
+		lblPU2.setToolTipText( UNBINDING_PROBABILITY_TOOLTIP );
 		lblPU2.setFont( getFont().deriveFont( getFont().getSize() - 2f ) );
 		final GridBagConstraints gbc_lblPU2 = new GridBagConstraints();
 		gbc_lblPU2.anchor = GridBagConstraints.EAST;
@@ -435,6 +487,7 @@ public class ExTrackActionPanel extends JPanel
 		panelMLEstimation.add( lblPU2, gbc_lblPU2 );
 
 		lblEstimProbUnbinding = new JLabel();
+		lblEstimProbUnbinding.setToolTipText( UNBINDING_PROBABILITY_TOOLTIP );
 		lblEstimProbUnbinding.setHorizontalAlignment( SwingConstants.TRAILING );
 		lblEstimProbUnbinding.setMinimumSize( new Dimension( 100, 26 ) );
 		lblEstimProbUnbinding.setPreferredSize( new Dimension( 100, 26 ) );
@@ -555,7 +608,7 @@ public class ExTrackActionPanel extends JPanel
 			final double nbSubStepsRatio = ( ( Number ) smNbSubSteps.getValue() ).doubleValue() / DEFAULT_NB_SUBSTEPS;
 			final double frameLenRatio = ( ( Number ) smNFrames.getValue() ).doubleValue() / DEFAULT_NFRAMES;
 			final double factor = Math.pow( 2, ( nbSubStepsRatio * frameLenRatio ) ) / 2.;
-			
+
 			final String str = factor > 1.
 					? String.format( "Computation time will increase roughly by a factor %d.", ( int ) Math.ceil( factor ) )
 					: factor <= 0.5

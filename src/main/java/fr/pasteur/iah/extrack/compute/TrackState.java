@@ -198,10 +198,6 @@ public class TrackState
 						 * Update LPloop.
 						 */
 
-						System.out.println(); // DEBUG
-						System.out.println( "LP: " + LP.getRowDimension() + " x " + LP.getColumnDimension() ); // DEBUG
-						System.out.println( "logIntegratedTerm: " + logIntegratedTerm.getRowDimension() + " x " + logIntegratedTerm.getColumnDimension() ); // DEBUG
-						System.out.println( "LFPred: " + LFPred.getRowDimension() + " x " + LFPred.getColumnDimension() ); // DEBUG
 						final Matrix LPPred = LP.plus( logIntegratedTerm ).plus( LFPred );
 
 						final Matrix PPred = new Matrix( LPPred.getRowDimension(), LPPred.getColumnDimension() );
@@ -252,6 +248,8 @@ public class TrackState
 
 					currNbBs = currBs.getRowDimension();
 					removeStep += 1;
+
+					currStates = createStateMatrix( currBs, nbSubSteps );
 				}
 			}
 
