@@ -54,9 +54,9 @@ public class ExTrackActionPanel extends JPanel
 
 	private static final long serialVersionUID = 1L;
 
-	private static final int DEFAULT_NB_SUBSTEPS = 2;
+	private static final int DEFAULT_NB_SUBSTEPS = 1;
 
-	private static final int DEFAULT_NFRAMES = 5;
+	private static final int DEFAULT_NFRAMES = 6;
 
 	private static final String LOCALIZATION_ERROR_TOOLTIP = "Standard deviation (std) from real position to observed position.";
 	private static final String DIFFUSION_LENGTH0_TOOLTIP = "Std corresponding to the distance between consecutive real positions in state 0.";
