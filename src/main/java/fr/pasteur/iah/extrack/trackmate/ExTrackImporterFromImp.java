@@ -87,7 +87,7 @@ public class ExTrackImporterFromImp extends ExTrackImporter
 		settings.setFrom( imp );
 
 		// Declare all features.
-		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider();
+		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( imp == null ? 1 : imp.getNChannels() );
 		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
 		for ( final String key : spotAnalyzerKeys )
 		{

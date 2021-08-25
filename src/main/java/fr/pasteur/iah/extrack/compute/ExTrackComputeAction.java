@@ -21,15 +21,18 @@
  */
 package fr.pasteur.iah.extrack.compute;
 
+import java.awt.Frame;
+
 import javax.swing.ImageIcon;
 
 import org.scijava.plugin.Plugin;
 
+import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.action.AbstractTMAction;
 import fiji.plugin.trackmate.action.TrackMateAction;
 import fiji.plugin.trackmate.action.TrackMateActionFactory;
-import fiji.plugin.trackmate.gui.TrackMateGUIController;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fr.pasteur.iah.extrack.plugin.ExTrackActionController;
 import fr.pasteur.iah.extrack.plugin.ExTrackImporterPanel;
 import fr.pasteur.iah.extrack.util.ExTrackUtil;
@@ -59,7 +62,7 @@ public class ExTrackComputeAction extends AbstractTMAction
 	public static final String NAME = "Compute ExTrack probabilities";
 
 	@Override
-	public void execute( final TrackMate trackmate )
+	public void execute( final TrackMate trackmate, final SelectionModel selectionModel, final DisplaySettings displaySettings, final Frame parent )
 	{
 		final ExTrackActionController controller = new ExTrackActionController( trackmate, logger );
 		controller.show();
@@ -82,7 +85,7 @@ public class ExTrackComputeAction extends AbstractTMAction
 		}
 
 		@Override
-		public TrackMateAction create( final TrackMateGUIController controller )
+		public TrackMateAction create()
 		{
 			return new ExTrackComputeAction();
 		}
@@ -98,6 +101,5 @@ public class ExTrackComputeAction extends AbstractTMAction
 		{
 			return NAME;
 		}
-
 	}
 }

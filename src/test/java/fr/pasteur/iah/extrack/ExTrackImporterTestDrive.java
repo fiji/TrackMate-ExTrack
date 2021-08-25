@@ -21,26 +21,40 @@
  */
 package fr.pasteur.iah.extrack;
 
+import static fiji.plugin.trackmate.gui.Icons.TRACKMATE_ICON;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JFrame;
+
 import Jama.Matrix;
 import fiji.plugin.trackmate.Model;
+import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.gui.GuiUtils;
-import fiji.plugin.trackmate.gui.TrackMateGUIController;
-import fiji.plugin.trackmate.gui.descriptors.ConfigureViewsDescriptor;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackDisplayMode;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackMateObject;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
+import fiji.plugin.trackmate.gui.wizard.TrackMateWizardSequence;
+import fiji.plugin.trackmate.gui.wizard.WizardSequence;
+import fiji.plugin.trackmate.gui.wizard.descriptors.ConfigureViewsDescriptor;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
+import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewUtils;
 import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
 import fr.pasteur.iah.extrack.numpy.NumPyReader;
+import fr.pasteur.iah.extrack.trackmate.ExTrackEdgeFeatures;
+import fr.pasteur.iah.extrack.trackmate.ExTrackProbabilitiesFeature;
 import fr.pasteur.iah.extrack.util.ExTrackUtil;
 import ij.ImageJ;
+import ij.ImagePlus;
 
 public class ExTrackImporterTestDrive
 {
@@ -75,31 +89,38 @@ public class ExTrackImporterTestDrive
 
 		addAllAnalyzers( settings );
 		final TrackMate trackmate = new TrackMate( model, settings );
-//		trackmate.computeSpotFeatures( false );
+		trackmate.computeSpotFeatures( false );
 		trackmate.computeEdgeFeatures( false );
 		trackmate.computeTrackFeatures( false );
 
-		/*
-		 * Launch controller.
-		 */
+		// Main objects.
+		final ImagePlus imp = settings.imp;
+		final SelectionModel selectionModel = new SelectionModel( model );
+		final DisplaySettings displaySettings = DisplaySettingsIO.readUserDefault();
 
-		final TrackMateGUIController controller = new TrackMateGUIController( trackmate );
-		controller.setGUIStateString( ConfigureViewsDescriptor.KEY );
-		GuiUtils.positionWindow( controller.getGUI(), settings.imp.getWindow() );
+		// Config view.
+		displaySettings.setSpotColorBy( TrackMateObject.SPOTS, ExTrackProbabilitiesFeature.P_STUCK );
+		displaySettings.setTrackColorBy( TrackMateObject.EDGES, ExTrackEdgeFeatures.P_STUCK );
+		displaySettings.setTrackDisplayMode( TrackDisplayMode.LOCAL );
+		displaySettings.setFadeTrackRange( 20 );
 
-		final HyperStackDisplayer view = new HyperStackDisplayer( model, controller.getSelectionModel(), settings.imp );
-		final Map< String, Object > displaySettings = controller.getGuimodel().getDisplaySettings();
-		controller.getGuimodel().addView( view );
-		for ( final String key : displaySettings.keySet() )
-			view.setDisplaySettings( key, displaySettings.get( key ) );
+		// Main view.
+		final TrackMateModelView displayer = new HyperStackDisplayer( model, selectionModel, imp, displaySettings );
+		displayer.render();
 
-		view.render();
+		// Wizard.
+		final WizardSequence sequence = new TrackMateWizardSequence( trackmate, selectionModel, displaySettings );
+		sequence.setCurrent( ConfigureViewsDescriptor.KEY );
+		final JFrame frame = sequence.run( "TrackMate on " + imp.getShortTitle() );
+		frame.setIconImage( TRACKMATE_ICON.getImage() );
+		GuiUtils.positionWindow( frame, imp.getWindow() );
+		frame.setVisible( true );
 	}
 
 	private static final void addAllAnalyzers( final Settings settings )
 	{
 		settings.clearSpotAnalyzerFactories();
-		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider();
+		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( settings.imp.getNChannels() );
 		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
 		for ( final String key : spotAnalyzerKeys )
 			settings.addSpotAnalyzerFactory( spotAnalyzerProvider.getFactory( key ) );
@@ -116,5 +137,4 @@ public class ExTrackImporterTestDrive
 		for ( final String key : trackAnalyzerKeys )
 			settings.addTrackAnalyzer( trackAnalyzerProvider.getFactory( key ) );
 	}
-
 }

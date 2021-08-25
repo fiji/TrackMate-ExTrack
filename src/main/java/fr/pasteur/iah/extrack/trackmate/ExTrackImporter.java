@@ -21,6 +21,8 @@
  */
 package fr.pasteur.iah.extrack.trackmate;
 
+import static fiji.plugin.trackmate.gui.Icons.TRACKMATE_ICON;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -29,6 +31,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+
+import javax.swing.JFrame;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
@@ -41,13 +45,15 @@ import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
 import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
 import fiji.plugin.trackmate.features.track.TrackAnalyzer;
 import fiji.plugin.trackmate.gui.GuiUtils;
-import fiji.plugin.trackmate.gui.TrackMateGUIController;
-import fiji.plugin.trackmate.gui.descriptors.ConfigureViewsDescriptor;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackDisplayMode;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackMateObject;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
+import fiji.plugin.trackmate.gui.wizard.TrackMateWizardSequence;
+import fiji.plugin.trackmate.gui.wizard.WizardSequence;
 import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
 import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
 import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
-import fiji.plugin.trackmate.visualization.PerEdgeFeatureColorGenerator;
-import fiji.plugin.trackmate.visualization.SpotColorGenerator;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
 import fr.pasteur.iah.extrack.numpy.NumPyReader;
@@ -192,7 +198,7 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 		settings.setFrom( imp );
 
 		// Declare all features.
-		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider();
+		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( imp.getNChannels() );
 		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
 		for ( final String key : spotAnalyzerKeys )
 		{
@@ -359,28 +365,31 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 		final TrackMate trackmate = importer.getResult();
 
-		/*
-		 * Launch controller.
-		 */
-
-		final TrackMateGUIController controller = new TrackMateGUIController( trackmate );
-		controller.setGUIStateString( ConfigureViewsDescriptor.KEY );
-		GuiUtils.positionWindow( controller.getGUI(), trackmate.getSettings().imp.getWindow() );
-
-		final Model model = trackmate.getModel();
-
+		// IJ.
 		ImageJ.main( args );
 
+		// Main objects.
+		final Settings settings = trackmate.getSettings();
+		final ImagePlus imp = settings.imp;
+		final Model model = trackmate.getModel();
 		final SelectionModel selectionModel = new SelectionModel( model );
-//			final HyperStackDisplayer view = new HyperStackDisplayer( model, selectionModel, settings.imp );
-		final HyperStackDisplayer view = new HyperStackDisplayer( model, selectionModel );
-		final SpotColorGenerator spotColorGenerator = new SpotColorGenerator( model );
-		spotColorGenerator.setFeature( ExTrackProbabilitiesFeature.P_STUCK );
-		final PerEdgeFeatureColorGenerator trackColorGenerator = new PerEdgeFeatureColorGenerator( model, ExTrackEdgeFeatures.P_STUCK );
-		view.setDisplaySettings( TrackMateModelView.KEY_SPOT_COLORING, spotColorGenerator );
-		view.setDisplaySettings( TrackMateModelView.KEY_TRACK_COLORING, trackColorGenerator );
-		view.setDisplaySettings( TrackMateModelView.KEY_TRACK_DISPLAY_MODE, TrackMateModelView.TRACK_DISPLAY_MODE_LOCAL );
-		view.setDisplaySettings( TrackMateModelView.KEY_TRACK_DISPLAY_DEPTH, 20 );
-		view.render();
+		final DisplaySettings displaySettings = DisplaySettingsIO.readUserDefault();
+
+		// Config view.
+		displaySettings.setSpotColorBy( TrackMateObject.SPOTS, ExTrackProbabilitiesFeature.P_STUCK );
+		displaySettings.setTrackColorBy( TrackMateObject.EDGES, ExTrackEdgeFeatures.P_STUCK );
+		displaySettings.setTrackDisplayMode( TrackDisplayMode.LOCAL );
+		displaySettings.setFadeTrackRange( 20 );
+
+		// Main view.
+		final TrackMateModelView displayer = new HyperStackDisplayer( model, selectionModel, imp, displaySettings );
+		displayer.render();
+
+		// Wizard.
+		final WizardSequence sequence = new TrackMateWizardSequence( trackmate, selectionModel, displaySettings );
+		final JFrame frame = sequence.run( "TrackMate on " + imp.getShortTitle() );
+		frame.setIconImage( TRACKMATE_ICON.getImage() );
+		GuiUtils.positionWindow( frame, imp.getWindow() );
+		frame.setVisible( true );
 	}
 }

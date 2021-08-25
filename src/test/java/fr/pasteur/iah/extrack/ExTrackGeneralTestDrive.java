@@ -26,7 +26,7 @@ import java.util.Locale;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import fiji.plugin.trackmate.LoadTrackMatePlugIn_;
+import fiji.plugin.trackmate.LoadTrackMatePlugIn;
 import ij.ImageJ;
 
 public class ExTrackGeneralTestDrive
@@ -37,7 +37,6 @@ public class ExTrackGeneralTestDrive
 		Locale.setDefault( Locale.ROOT );
 		UIManager.setLookAndFeel( UIManager.getSystemLookAndFeelClassName() );
 		ImageJ.main( args );
-		new LoadTrackMatePlugIn_().run( "samples/tracks.xml" );
+		new LoadTrackMatePlugIn().run( "samples/tracks.xml" );
 	}
-
 }

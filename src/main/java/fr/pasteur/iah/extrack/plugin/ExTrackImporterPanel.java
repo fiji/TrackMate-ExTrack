@@ -21,6 +21,8 @@
  */
 package fr.pasteur.iah.extrack.plugin;
 
+import static fiji.plugin.trackmate.gui.Icons.TRACKMATE_ICON;
+
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -31,7 +33,6 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -52,8 +53,10 @@ import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.gui.GuiUtils;
-import fiji.plugin.trackmate.gui.TrackMateGUIController;
-import fiji.plugin.trackmate.gui.descriptors.ConfigureViewsDescriptor;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
+import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
+import fiji.plugin.trackmate.gui.wizard.TrackMateWizardSequence;
+import fiji.plugin.trackmate.gui.wizard.descriptors.ConfigureViewsDescriptor;
 import fiji.plugin.trackmate.util.TMUtils;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
@@ -75,16 +78,22 @@ public class ExTrackImporterPanel extends JPanel
 
 	// Used to 'remember values between runs.'
 	static String lastDataPath = System.getProperty( "user.home" );
+
 	static String lastImagePath = System.getProperty( "user.home" );
+
 	static double lastRadius = 0.3;
+
 	static double lastPizelSize = 0.08;
+
 	static double lastFrameInterval = 0.1;
+
 	static String lastSpatialUnits = "µm";
+
 	static String lastTimeUnits = "s";
 
-	private JTextField textFieldDataPath;
+	private final JTextField textFieldDataPath;
 
-	private JTextField textFieldImgPath;
+	private final JTextField textFieldImgPath;
 
 	private static File path = new File( System.getProperty( "user.home" ) );
 
@@ -490,27 +499,26 @@ public class ExTrackImporterPanel extends JPanel
 						settings.setFrom( imp );
 					}
 
-					// Launch TrackMate controller.
-					final TrackMateGUIController controller = new TrackMateGUIController( trackmate );
-					GuiUtils.positionWindow( controller.getGUI(), trackmate.getSettings().imp.getWindow() );
-
-					// Fine tune the view.
+					// Main objects.
+					final Settings settings = trackmate.getSettings();
 					final Model model = trackmate.getModel();
-					final TrackMateModelView view = new HyperStackDisplayer( model, new SelectionModel( model ), trackmate.getSettings().imp );
-					controller.getGuimodel().addView( view );
+					final SelectionModel selectionModel = new SelectionModel( model );
+					final DisplaySettings displaySettings = DisplaySettingsIO.readUserDefault();
 
-					final Map< String, Object > displaySettings = controller.getGuimodel().getDisplaySettings();
-					for ( final String key : displaySettings.keySet() )
-						view.setDisplaySettings( key, displaySettings.get( key ) );
+					// Main view.
+					final TrackMateModelView displayer = new HyperStackDisplayer( model, selectionModel, imp, displaySettings );
+					displayer.render();
 
-					controller.setGUIStateString( ConfigureViewsDescriptor.KEY );
+					// Wizard.
+					final TrackMateWizardSequence sequence = new TrackMateWizardSequence( trackmate, selectionModel, displaySettings );
+					sequence.setCurrent( ConfigureViewsDescriptor.KEY );
+					final JFrame frame = sequence.run( "TrackMate on " + settings.imp.getShortTitle() );
+					frame.setIconImage( TRACKMATE_ICON.getImage() );
+					GuiUtils.positionWindow( frame, settings.imp.getWindow() );
+					frame.setVisible( true );
 
 					// Log all of this.
-					controller.getGUI().getLogPanel().setTextContent( logText.toString() );
-
-					// Finish.
-					view.render();
-
+					model.getLogger().log( logText.toString() );
 				}
 				finally
 				{
@@ -592,7 +600,7 @@ public class ExTrackImporterPanel extends JPanel
 //				imp,
 //				"samples/tracks.npy",
 //				0.12 ) );
-		
+
 		final ImagePlus imp = IJ.openImage( "samples/realdata/GFP-100mW-60msExp-FTo-bleaching-10s-tirf_6_MMStack_Pos0.tif" );
 		imp.show();
 		frame.getContentPane().add( new ExTrackImporterPanel(

@@ -60,6 +60,6 @@ public class ComputeExTrackTestDrive
 		final Model model = ExTrackUtil.toModel( tracks );
 		final Settings settings = new Settings();
 		final TrackMate trackmate = new TrackMate( model , settings  );
-		action.execute( trackmate );
+		action.execute( trackmate, null, null, null );
 	}
 }
