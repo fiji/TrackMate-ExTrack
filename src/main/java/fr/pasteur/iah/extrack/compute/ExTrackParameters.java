@@ -65,6 +65,20 @@ public class ExTrackParameters
 				probabilityOfUnbinding };
 	}
 
+	@Override
+	public String toString()
+	{
+		final StringBuilder str = new StringBuilder( super.toString() );
+		str.append( String.format( "\n%-40s: %-8.3g", " - Localization error", localizationError ) );
+		str.append( String.format( "\n%-40s: %-8.3g", " - Diffusion length for diffusive state", diffusionLength0 ) );
+		str.append( String.format( "\n%-40s: %-8.3g", " - Diffusion length for bound state", diffusionLength1 ) );
+		str.append( String.format( "\n%-40s: %-8.3g", " - Fraction in diffusive state", F0 ) );
+		str.append( String.format( "\n%-40s: %-8.3g", " - Probability of unbinding", probabilityOfUnbinding ) );
+		str.append( String.format( "\n%-40s: %d", " - Number of sub-steps for optimization", nbSubteps ) );
+		str.append( String.format( "\n%-40s: %d\n", " - Number of frames for optimization", nFrames ) );
+		return str.toString();
+	}
+
 	public static final Builder create()
 	{
 		return new Builder();
