@@ -74,19 +74,19 @@ public class ExTrackParameters
 
 	public static class Builder
 	{
-		private double localizationError = 0.3;
+		private double localizationError = 0.1;
 
-		private double diffusionLength0 = 0.08;
+		private double diffusionLength0 = 0.5;
 
-		private double diffusionLength1 = 0.08;
+		private double diffusionLength1 = 0.01;
 
-		private double F0 = 0.1;
+		private double F0 = 0.5;
 
 		private double probabilityOfUnbinding = 0.9;
 
-		private int nbSubSteps = 2;
+		private int nbSubSteps = 1;
 
-		private int nFrames = 5;
+		private int nFrames = 6;
 
 		public Builder localizationError( final double localizationError )
 		{
