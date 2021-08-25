@@ -64,6 +64,8 @@ public class ExTrackActionPanel extends JPanel
 	private static final String MOBILE_FRACTION_TOOLTIP = "Fraction of particles in state 1.";
 	private static final String UNBINDING_PROBABILITY_TOOLTIP = "Probability of unbinding per step.";
 
+	private final NumberFormat formatter = new DecimalFormat( "##########.#############" );
+
 	final JButton btnEstimStart;
 
 	final JButton btnEstimCancel;
@@ -95,8 +97,6 @@ public class ExTrackActionPanel extends JPanel
 	private final JFormattedTextField ftfLocError;
 
 	private final JLabel lblLog;
-
-	private final NumberFormat formatter = new DecimalFormat( "##########.#############" );
 
 	private final SpinnerNumberModel smNbSubSteps;
 
@@ -184,7 +184,7 @@ public class ExTrackActionPanel extends JPanel
 		gbc_lblLocError.gridy = 0;
 		panelManualInput.add( lblLocError, gbc_lblLocError );
 
-		ftfLocError = new JFormattedTextField( formatter );
+		ftfLocError = new JFormattedTextField();
 		ftfLocError.setToolTipText( LOCALIZATION_ERROR_TOOLTIP );
 		ftfLocError.setHorizontalAlignment( SwingConstants.TRAILING );
 		ftfLocError.setMinimumSize( new Dimension( 100, 26 ) );
@@ -625,11 +625,11 @@ public class ExTrackActionPanel extends JPanel
 
 	public void setEstimationParameters( final ExTrackParameters params )
 	{
-		lblEstimLocError.setText( formatter.format( params.localizationError ) );
-		lblEstimDiffLength0.setText( formatter.format( params.diffusionLength0 ) );
-		lblEstimDiffLength1.setText( formatter.format( params.diffusionLength1 ) );
-		lblEstimMobileFraction.setText( formatter.format( params.F0 ) );
-		lblEstimProbUnbinding.setText( formatter.format( params.probabilityOfUnbinding ) );
+		lblEstimLocError.setText( String.format( "%8.3g", params.localizationError ) );
+		lblEstimDiffLength0.setText( String.format( "%8.3g", params.diffusionLength0 ) );
+		lblEstimDiffLength1.setText( String.format( "%8.3g", params.diffusionLength1 ) );
+		lblEstimMobileFraction.setText( String.format( "%8.3g", params.F0 ) );
+		lblEstimProbUnbinding.setText( String.format( "%8.3g", params.probabilityOfUnbinding ) );
 		smNbSubSteps.setValue( Integer.valueOf( params.nbSubteps ) );
 		smNFrames.setValue( Integer.valueOf( params.nFrames ) );
 	}

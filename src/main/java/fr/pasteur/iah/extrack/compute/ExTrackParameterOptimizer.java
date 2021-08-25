@@ -75,11 +75,11 @@ public class ExTrackParameterOptimizer implements Runnable, Cancelable
 				tolfx, tolx );
 
 		logger.log( "\n\n-------------------------------------------------------------------------\n", Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f\n", "localizationError", parameters[ 0 ] ), Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f\n", "diffusionLength0", parameters[ 1 ] ), Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f\n", "diffusionLength1", parameters[ 2 ] ), Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f\n", "F0", parameters[ 3 ] ), Logger.BLUE_COLOR );
-		logger.log( String.format( "%30s: %10.5f\n", "probabilityOfUnbinding", parameters[ 4 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%40s: %8.3g\n", "Localization error", parameters[ 0 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%40s: %8.3g\n", "Diffusion length for diffusive state", parameters[ 1 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%40s: %8.3g\n", "Diffusion length for bound state", parameters[ 2 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%40s: %8.3g\n", "Fraction in diffusive state", parameters[ 3 ] ), Logger.BLUE_COLOR );
+		logger.log( String.format( "%40s: %8.3g\n", "Probability of unbinding", parameters[ 4 ] ), Logger.BLUE_COLOR );
 	}
 
 	@Override

@@ -184,12 +184,12 @@ public class ConjugateDirectionSearch extends MultivariateMinimum implements Can
 
 		logger.log( "\n------------- Optimization process started -----------\n" );
 		logger.log( "... Optimizer settings:\n" );
-		logger.log( "... scaling - " + scbd + '\n' );
-		logger.log( "...   tolx  - " + t + '\n' );
-		logger.log( "...  tolfx  - " + tolfx + '\n' );
-		logger.log( "... maxstep - " + h + '\n' );
-		logger.log( "...   illc  - " + illc + '\n' );
-		logger.log( "... maxFun  - " + maxFun + '\n' );
+		logger.log( "... scaling:  " + scbd + '\n' );
+		logger.log( "...    tolx:  " + t + '\n' );
+		logger.log( "...   tolfx:  " + tolfx + '\n' );
+		logger.log( "... maxstep:  " + h + '\n' );
+		logger.log( "...    illc:  " + illc + '\n' );
+		logger.log( "...  maxFun:  " + maxFun + '\n' );
 
 		while ( true )
 		{
@@ -478,7 +478,7 @@ public class ConjugateDirectionSearch extends MultivariateMinimum implements Can
 		}
 
 		vecprint( "\nFinal solution is ...", x );
-		logger.log( "\nFunction value reduced to " + fx  );
+		logger.log( String.format( "\nMaximum likelihood of the tracks: %11.6g", -fx ) );
 		logger.log( " after " + numFun + " function calls.\n" );
 
 		// return (fx);
@@ -558,8 +558,9 @@ public class ConjugateDirectionSearch extends MultivariateMinimum implements Can
 	private void vecprint( final String s, final double[] x )
 	{
 		logger.log( s );
-		for ( int i = 0; i < x.length; i++ )
-			logger.log( x[ i ] + "  " );
+		logger.log( String.format( "%8.3g", x[ 0 ] ) );
+		for ( int i = 1; i < x.length; i++ )
+			logger.log( String.format( "; %8.3g", x[ i ] ) );
 
 		logger.log( "\n" );
 	}
@@ -1060,7 +1061,7 @@ public class ConjugateDirectionSearch extends MultivariateMinimum implements Can
 
 	private void print() /* print a line of traces */
 	{
-		logger.log( "Function value reduced to " + fx + '\n' );
+		logger.log( String.format( "Maximum likelihood of the tracks: %11.6g\n", -fx ) );
 		logger.log( "After " + numFun + " function calls." + '\n' );
 		logger.log( "Including " + nl + " linear searches." + '\n' );
 		vecprint("Current values of x ...", x);
