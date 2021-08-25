@@ -32,7 +32,6 @@ import fiji.plugin.trackmate.FeatureModel;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Spot;
-import fiji.plugin.trackmate.TrackMate;
 import fiji.plugin.trackmate.TrackModel;
 import fr.pasteur.iah.extrack.trackmate.ExTrackEdgeFeatures;
 import fr.pasteur.iah.extrack.trackmate.ExTrackProbabilitiesFeature;
@@ -44,15 +43,15 @@ public class ExTrackDoPredictions implements Runnable
 
 	private final Logger logger;
 
-	private final TrackMate trackmate;
+	private final Model model;
 
 	public ExTrackDoPredictions(
 			final ExTrackParameters params,
-			final TrackMate trackmate,
+			final Model model,
 			final Logger logger )
 	{
 		this.params = params;
-		this.trackmate = trackmate;
+		this.model = model;
 		this.logger = logger;
 	}
 
@@ -75,7 +74,6 @@ public class ExTrackDoPredictions implements Runnable
 				frameLen,
 				doPred );
 
-		final Model model = trackmate.getModel();
 		final TrackModel trackModel = model.getTrackModel();
 		final FeatureModel featureModel = model.getFeatureModel();
 		

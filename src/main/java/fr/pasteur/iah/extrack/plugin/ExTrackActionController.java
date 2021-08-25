@@ -43,6 +43,7 @@ import com.google.gson.JsonSyntaxException;
 
 import Jama.Matrix;
 import fiji.plugin.trackmate.Logger;
+import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.TrackMate;
 import fr.pasteur.iah.extrack.compute.ExTrackDoPredictions;
 import fr.pasteur.iah.extrack.compute.ExTrackParameterOptimizer;
@@ -93,7 +94,8 @@ public class ExTrackActionController
 			try
 			{
 				final ExTrackParameters parameters = gui.getManualParameters();
-				final ExTrackDoPredictions predictions = new ExTrackDoPredictions( parameters, trackmate, logger );
+				final Model model = trackmate.getModel();
+				final ExTrackDoPredictions predictions = new ExTrackDoPredictions( parameters, model, logger );
 				predictions.run();
 			}
 			finally
