@@ -75,10 +75,11 @@ public class ExTrack
 	 * <li>for edges that are the target of these spots, the same values are
 	 * stored in the two edge features '<code>EXTRACK_EDGE_P_DIFFUSIVE</code>'
 	 * and '<code>EXTRACK_EDGE_P_STUCK</code>'.
+	 * </ul>
 	 * 
 	 * @param parameters
 	 *            the motility parameters, possibly estimated with
-	 *            {@link #estimateParameters()}
+	 *            <code>estimateParameters()</code>.
 	 */
 	public void computeProbabilities( final ExTrackParameters parameters )
 	{
