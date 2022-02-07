@@ -8,7 +8,7 @@
 		<version>31.1.0</version>
 	</parent>
 
-	<artifactId>TrackMate-ExTrack_</artifactId>
+	<artifactId>TrackMate-ExTrack</artifactId>
 	<version>1.2.2-SNAPSHOT</version>
 
 	<name>TrackMate-ExTrack</name>
