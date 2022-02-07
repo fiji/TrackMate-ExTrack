@@ -22,15 +22,8 @@
 package fr.pasteur.iah.extrack.trackmate;
 
 import java.io.File;
-import java.util.List;
 
 import fiji.plugin.trackmate.Settings;
-import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
-import fiji.plugin.trackmate.features.track.TrackAnalyzer;
-import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
-import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
-import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fr.pasteur.iah.extrack.numpy.NumPyReader;
 import ij.ImagePlus;
 
@@ -83,35 +76,8 @@ public class ExTrackImporterFromImp extends ExTrackImporter
 	@Override
 	protected Settings createSettings( final String imageFile )
 	{
-		final Settings settings = new Settings();
-		settings.setFrom( imp );
-
-		// Declare all features.
-		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( imp == null ? 1 : imp.getNChannels() );
-		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
-		for ( final String key : spotAnalyzerKeys )
-		{
-			final SpotAnalyzerFactory< ? > spotFeatureAnalyzer = spotAnalyzerProvider.getFactory( key );
-			settings.addSpotAnalyzerFactory( spotFeatureAnalyzer );
-		}
-
-		settings.clearEdgeAnalyzers();
-		final EdgeAnalyzerProvider edgeAnalyzerProvider = new EdgeAnalyzerProvider();
-		final List< String > edgeAnalyzerKeys = edgeAnalyzerProvider.getKeys();
-		for ( final String key : edgeAnalyzerKeys )
-		{
-			final EdgeAnalyzer edgeAnalyzer = edgeAnalyzerProvider.getFactory( key );
-			settings.addEdgeAnalyzer( edgeAnalyzer );
-		}
-
-		settings.clearTrackAnalyzers();
-		final TrackAnalyzerProvider trackAnalyzerProvider = new TrackAnalyzerProvider();
-		final List< String > trackAnalyzerKeys = trackAnalyzerProvider.getKeys();
-		for ( final String key : trackAnalyzerKeys )
-		{
-			final TrackAnalyzer trackAnalyzer = trackAnalyzerProvider.getFactory( key );
-			settings.addTrackAnalyzer( trackAnalyzer );
-		}
+		final Settings settings = new Settings( imp );
+		settings.addAllAnalyzers();
 
 		// ExTrack features.
 		settings.addSpotAnalyzerFactory( new ExTrackProbabilitiesFeature<>() );

@@ -467,7 +467,8 @@ public class ExTrackImporterPanel extends JPanel
 					if ( null == imp )
 					{
 						// Fine-tune image.
-						final Settings settings = trackmate.getSettings();
+						final Settings ls = trackmate.getSettings();
+						final Settings settings = trackmate.getSettings().copyOn( ls.imp );
 						final ImagePlus imp = settings.imp;
 						imp.show();
 						imp.getCalibration().setUnit( spaceUnits );
@@ -494,9 +495,6 @@ public class ExTrackImporterPanel extends JPanel
 								? "Resaving image succesful."
 								: "Problem resaving the image to TIF file. Saved TrackMate file might not reload properly.";
 						logText.append( saveMsg );
-
-						// Update settings accordingly.
-						settings.setFrom( imp );
 					}
 
 					// Main objects.

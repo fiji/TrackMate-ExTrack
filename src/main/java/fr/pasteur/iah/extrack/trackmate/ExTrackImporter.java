@@ -41,9 +41,6 @@ import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackMate;
-import fiji.plugin.trackmate.features.edges.EdgeAnalyzer;
-import fiji.plugin.trackmate.features.spot.SpotAnalyzerFactory;
-import fiji.plugin.trackmate.features.track.TrackAnalyzer;
 import fiji.plugin.trackmate.gui.GuiUtils;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings;
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackDisplayMode;
@@ -51,9 +48,6 @@ import fiji.plugin.trackmate.gui.displaysettings.DisplaySettings.TrackMateObject
 import fiji.plugin.trackmate.gui.displaysettings.DisplaySettingsIO;
 import fiji.plugin.trackmate.gui.wizard.TrackMateWizardSequence;
 import fiji.plugin.trackmate.gui.wizard.WizardSequence;
-import fiji.plugin.trackmate.providers.EdgeAnalyzerProvider;
-import fiji.plugin.trackmate.providers.SpotAnalyzerProvider;
-import fiji.plugin.trackmate.providers.TrackAnalyzerProvider;
 import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
 import fr.pasteur.iah.extrack.numpy.NumPyReader;
@@ -194,35 +188,8 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 	{
 		final ImagePlus imp = IJ.openImage( imageFile );
 
-		final Settings settings = new Settings();
-		settings.setFrom( imp );
-
-		// Declare all features.
-		final SpotAnalyzerProvider spotAnalyzerProvider = new SpotAnalyzerProvider( imp.getNChannels() );
-		final List< String > spotAnalyzerKeys = spotAnalyzerProvider.getKeys();
-		for ( final String key : spotAnalyzerKeys )
-		{
-			final SpotAnalyzerFactory< ? > spotFeatureAnalyzer = spotAnalyzerProvider.getFactory( key );
-			settings.addSpotAnalyzerFactory( spotFeatureAnalyzer );
-		}
-
-		settings.clearEdgeAnalyzers();
-		final EdgeAnalyzerProvider edgeAnalyzerProvider = new EdgeAnalyzerProvider();
-		final List< String > edgeAnalyzerKeys = edgeAnalyzerProvider.getKeys();
-		for ( final String key : edgeAnalyzerKeys )
-		{
-			final EdgeAnalyzer edgeAnalyzer = edgeAnalyzerProvider.getFactory( key );
-			settings.addEdgeAnalyzer( edgeAnalyzer );
-		}
-
-		settings.clearTrackAnalyzers();
-		final TrackAnalyzerProvider trackAnalyzerProvider = new TrackAnalyzerProvider();
-		final List< String > trackAnalyzerKeys = trackAnalyzerProvider.getKeys();
-		for ( final String key : trackAnalyzerKeys )
-		{
-			final TrackAnalyzer trackAnalyzer = trackAnalyzerProvider.getFactory( key );
-			settings.addTrackAnalyzer( trackAnalyzer );
-		}
+		final Settings settings = new Settings( imp );
+		settings.addAllAnalyzers();
 
 		// ExTrack features.
 		settings.addSpotAnalyzerFactory( new ExTrackProbabilitiesFeature<>() );

@@ -77,10 +77,9 @@ public class ExTrackImporterTestDrive
 		 * Create the settings object.
 		 */
 
-		final Settings settings = new Settings();
+		final ImagePlus imp = ViewUtils.makeEmpytImagePlus( model );
+		final Settings settings = new Settings( imp );
 		settings.dt = frameInterval;
-		settings.imp = ViewUtils.makeEmpytImagePlus( model );
-		settings.setFrom( settings.imp );
 		settings.imp.show();
 
 		/*
@@ -94,7 +93,6 @@ public class ExTrackImporterTestDrive
 		trackmate.computeTrackFeatures( false );
 
 		// Main objects.
-		final ImagePlus imp = settings.imp;
 		final SelectionModel selectionModel = new SelectionModel( model );
 		final DisplaySettings displaySettings = DisplaySettingsIO.readUserDefault();
 
