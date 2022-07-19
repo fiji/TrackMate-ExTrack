@@ -50,7 +50,6 @@ import fiji.plugin.trackmate.visualization.TrackMateModelView;
 import fiji.plugin.trackmate.visualization.ViewUtils;
 import fiji.plugin.trackmate.visualization.hyperstack.HyperStackDisplayer;
 import fr.pasteur.iah.extrack.numpy.NumPyReader;
-import fr.pasteur.iah.extrack.trackmate.ExTrackEdgeFeatures;
 import fr.pasteur.iah.extrack.trackmate.ExTrackProbabilitiesFeature;
 import fr.pasteur.iah.extrack.util.ExTrackUtil;
 import ij.ImageJ;
@@ -98,7 +97,6 @@ public class ExTrackImporterTestDrive
 
 		// Config view.
 		displaySettings.setSpotColorBy( TrackMateObject.SPOTS, ExTrackProbabilitiesFeature.P_STUCK );
-		displaySettings.setTrackColorBy( TrackMateObject.EDGES, ExTrackEdgeFeatures.P_STUCK );
 		displaySettings.setTrackDisplayMode( TrackDisplayMode.LOCAL );
 		displaySettings.setFadeTrackRange( 20 );
 

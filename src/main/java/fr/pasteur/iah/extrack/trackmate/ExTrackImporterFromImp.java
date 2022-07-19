@@ -49,7 +49,7 @@ public class ExTrackImporterFromImp extends ExTrackImporter
 	{
 		if ( imp == null )
 		{
-			errorMessage = "Imageis null.";
+			errorMessage = "Image is null.";
 			return false;
 		}
 
@@ -81,10 +81,8 @@ public class ExTrackImporterFromImp extends ExTrackImporter
 
 		// ExTrack features.
 		settings.addSpotAnalyzerFactory( new ExTrackProbabilitiesFeature<>() );
-		settings.addEdgeAnalyzer( new ExTrackEdgeFeatures() );
 		settings.addTrackAnalyzer( new ExTrackTrackInfo() );
 
 		return settings;
 	}
-
 }

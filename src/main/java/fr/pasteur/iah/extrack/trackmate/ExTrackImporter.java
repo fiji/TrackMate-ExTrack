@@ -34,8 +34,6 @@ import java.util.stream.IntStream;
 
 import javax.swing.JFrame;
 
-import org.jgrapht.graph.DefaultWeightedEdge;
-
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.SelectionModel;
 import fiji.plugin.trackmate.Settings;
@@ -193,7 +191,6 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 		// ExTrack features.
 		settings.addSpotAnalyzerFactory( new ExTrackProbabilitiesFeature<>() );
-		settings.addEdgeAnalyzer( new ExTrackEdgeFeatures() );
 		settings.addTrackAnalyzer( new ExTrackTrackInfo() );
 
 		return settings;
@@ -269,40 +266,12 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 				}
 				spots.sort( Spot.frameComparator );
-				Spot source = spots.get( 0 );
-				for ( int j = 1; j < spots.size(); j++ )
-				{
-					final Spot target = spots.get( j );
-
-					final DefaultWeightedEdge edge = model.addEdge( source, target, 1. );
-
-					final Double pStuckTarget = source.getFeature( ExTrackProbabilitiesFeature.P_STUCK );
-					if ( pStuckTarget != null )
-					{
-						model.getFeatureModel().putEdgeFeature(
-								edge,
-								ExTrackEdgeFeatures.P_STUCK,
-								Double.valueOf( pStuckTarget ) );
-					}
-
-					final Double pStuckDiffusive = source.getFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE );
-					if ( pStuckDiffusive != null )
-					{
-						model.getFeatureModel().putEdgeFeature(
-								edge,
-								ExTrackEdgeFeatures.P_DIFFUSIVE,
-								Double.valueOf( pStuckDiffusive ) );
-					}
-
-					source = target;
-				}
 
 				// Store original track ID.
 				model.getFeatureModel().putTrackFeature(
-						model.getTrackModel().trackIDOf( source ),
+						trackID,
 						ExTrackTrackInfo.EXTRACK_TRACKID,
 						Double.valueOf( trackID ) );
-
 			}
 		}
 		finally
@@ -344,7 +313,7 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 		// Config view.
 		displaySettings.setSpotColorBy( TrackMateObject.SPOTS, ExTrackProbabilitiesFeature.P_STUCK );
-		displaySettings.setTrackColorBy( TrackMateObject.EDGES, ExTrackEdgeFeatures.P_STUCK );
+		displaySettings.setTrackColorBy( TrackMateObject.SPOTS, ExTrackProbabilitiesFeature.P_STUCK );
 		displaySettings.setTrackDisplayMode( TrackDisplayMode.LOCAL );
 		displaySettings.setFadeTrackRange( 20 );
 
@@ -354,6 +323,7 @@ public class ExTrackImporter implements OutputAlgorithm< TrackMate >
 
 		// Wizard.
 		final WizardSequence sequence = new TrackMateWizardSequence( trackmate, selectionModel, displaySettings );
+		sequence.setCurrent( "ConfigureViews" );
 		final JFrame frame = sequence.run( "TrackMate on " + imp.getShortTitle() );
 		frame.setIconImage( TRACKMATE_ICON.getImage() );
 		GuiUtils.positionWindow( frame, imp.getWindow() );

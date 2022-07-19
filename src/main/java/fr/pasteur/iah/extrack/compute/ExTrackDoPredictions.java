@@ -23,17 +23,12 @@ package fr.pasteur.iah.extrack.compute;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
-import org.jgrapht.graph.DefaultWeightedEdge;
 
 import Jama.Matrix;
-import fiji.plugin.trackmate.FeatureModel;
 import fiji.plugin.trackmate.Logger;
 import fiji.plugin.trackmate.Model;
 import fiji.plugin.trackmate.Spot;
 import fiji.plugin.trackmate.TrackModel;
-import fr.pasteur.iah.extrack.trackmate.ExTrackEdgeFeatures;
 import fr.pasteur.iah.extrack.trackmate.ExTrackProbabilitiesFeature;
 
 public class ExTrackDoPredictions implements Runnable
@@ -75,8 +70,6 @@ public class ExTrackDoPredictions implements Runnable
 				doPred );
 
 		final TrackModel trackModel = model.getTrackModel();
-		final FeatureModel featureModel = model.getFeatureModel();
-		
 		final int nTracks = trackModel.nTracks( true );
 		int index = 0;
 		for ( final Integer trackID : trackModel.trackIDs( true ) )
@@ -103,16 +96,6 @@ public class ExTrackDoPredictions implements Runnable
 				final Spot spot = track.get( r );
 				spot.putFeature( ExTrackProbabilitiesFeature.P_DIFFUSIVE, diffusiveProba );
 				spot.putFeature( ExTrackProbabilitiesFeature.P_STUCK, stuckProba );
-
-				final Set< DefaultWeightedEdge > edges = trackModel.edgesOf( spot );
-				for ( final DefaultWeightedEdge edge : edges )
-				{
-					if ( trackModel.getEdgeTarget( edge ).equals( spot ) )
-					{
-						featureModel.putEdgeFeature( edge, ExTrackEdgeFeatures.P_DIFFUSIVE, diffusiveProba );
-						featureModel.putEdgeFeature( edge, ExTrackEdgeFeatures.P_STUCK, stuckProba );
-					}
-				}
 			}
 			logger.setProgress( ( double ) ( ++index ) / nTracks );
 		}
