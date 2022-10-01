@@ -11,7 +11,7 @@
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>TrackMate-ExTrack</artifactId>
-	<version>1.2.4-SNAPSHOT</version>
+	<version>1.2.4</version>
 
 	<name>TrackMate-ExTrack</name>
 	<description>TrackMate interface for the ExTrack track analysis software.</description>
@@ -63,7 +63,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/trackmate-sc/TrackMate-ExTrack</connection>
 		<developerConnection>scm:git:git@github.com:trackmate-sc/TrackMate-ExTrack</developerConnection>
-		<tag>HEAD</tag>
+		<tag>TrackMate-ExTrack-1.2.4</tag>
 		<url>https://github.com/trackmate-sc/TrackMate-ExTrack</url>
 	</scm>
 	<issueManagement>
