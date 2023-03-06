@@ -11,7 +11,7 @@
 
 	<groupId>sc.fiji</groupId>
 	<artifactId>TrackMate-ExTrack</artifactId>
-	<version>1.2.5-SNAPSHOT</version>
+	<version>1.2.6-SNAPSHOT</version>
 
 	<name>TrackMate-ExTrack</name>
 	<description>TrackMate interface for the ExTrack track analysis software.</description>
